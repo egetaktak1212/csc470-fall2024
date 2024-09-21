@@ -39,8 +39,8 @@ public class plane_script : MonoBehaviour
         transform.position += transform.forward * Time.deltaTime * forwardSpeed * booster;
         //print(booster);
         Vector3 camPos = transform.position;
-        camPos += -transform.forward * 10f;
-        camPos += Vector3.up * 8f;
+        camPos += -transform.forward * 6f;
+        camPos += Vector3.up * 4f;
         cameraObject.transform.position = camPos;
 
         cameraObject.transform.LookAt(transform.position);
