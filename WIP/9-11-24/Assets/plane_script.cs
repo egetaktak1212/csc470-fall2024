@@ -26,7 +26,7 @@ public class plane_script : MonoBehaviour
     void Update()
     {
         float hAxis = Input.GetAxis("Horizontal"); // -1 if left is pressed, 1 if right is pressed, 0 if neither
-        float vAxis = Input.GetAxis("Vertical"); // -1 if down is pressed, 1 if up is pressed, 0 if neither
+        float vAxis = -Input.GetAxis("Vertical"); // -1 if down is pressed, 1 if up is pressed, 0 if neither
 
         // Apply the rotation based on the inputs
         Vector3 amountToRotate = new Vector3(0, 0, 0);
