@@ -11,7 +11,7 @@ public class plane_script : MonoBehaviour
 
     float xRotationSpeed = 90f;
     float yRotationSpeed = 90f;
-    public float forwardSpeed = 0.2f;
+    public float forwardSpeed = 10f;
     bool boost = false;
     float Timer;
     float time;
@@ -36,7 +36,7 @@ public class plane_script : MonoBehaviour
         transform.Rotate(amountToRotate, Space.Self);
 
 
-        transform.position += transform.forward * Time.deltaTime *10 * booster;
+        transform.position += transform.forward * Time.deltaTime * forwardSpeed * booster;
         //print(booster);
         Vector3 camPos = transform.position;
         camPos += -transform.forward * 10f;
