@@ -9,9 +9,10 @@ public class plane_script : MonoBehaviour
 {
     public GameObject cameraObject;
 
-    float xRotationSpeed = 90f;
-    float yRotationSpeed = 90f;
-    public float forwardSpeed = 10f;
+
+    float xRotationSpeed = 120f;
+    float yRotationSpeed = 120f;
+    public float forwardSpeed = 5f;
     bool boost = false;
     float Timer;
     float time;
@@ -25,8 +26,8 @@ public class plane_script : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float hAxis = Input.GetAxis("Horizontal"); // -1 if left is pressed, 1 if right is pressed, 0 if neither
-        float vAxis = -Input.GetAxis("Vertical"); // -1 if down is pressed, 1 if up is pressed, 0 if neither
+        float hAxis = -Input.GetAxis("Horizontal"); // -1 if left is pressed, 1 if right is pressed, 0 if neither
+        float vAxis = Input.GetAxis("Vertical"); // -1 if down is pressed, 1 if up is pressed, 0 if neither
 
         // Apply the rotation based on the inputs
         Vector3 amountToRotate = new Vector3(0, 0, 0);
