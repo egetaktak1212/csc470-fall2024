@@ -31,7 +31,7 @@ public class plane_script : MonoBehaviour
         // Apply the rotation based on the inputs
         Vector3 amountToRotate = new Vector3(0, 0, 0);
         amountToRotate.x = vAxis * xRotationSpeed;
-        amountToRotate.y = hAxis * yRotationSpeed;
+        amountToRotate.z = hAxis * yRotationSpeed;
         amountToRotate *= Time.deltaTime; // amountToRotate = amountToRotate * Time.deltaTime;
         transform.Rotate(amountToRotate, Space.Self);
 
