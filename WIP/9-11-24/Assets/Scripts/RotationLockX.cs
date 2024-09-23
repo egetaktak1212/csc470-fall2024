@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class RotationLockX : MonoBehaviour
 {
-    public GameObject parent; 
+    public GameObject parent;
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
@@ -18,6 +18,9 @@ public class RotationLockX : MonoBehaviour
         //plane. However, I only want it to rotate on one axis with the plane, the other axis should stay constant. So, here I'm trying to set the rotation of
         //the empty to the rotation of the plane ONLY in the left right turn axis. Now, i have no idea which axis that is, hence, testing.
         transform.position = parent.transform.position;
-        transform.eulerAngles = new Vector3(0, parent.transform.rotation.y, 0);
+        transform.rotation = new Quaternion(parent.transform.rotation.x, 0, 0, parent.transform.rotation.w);
+
+        //0, parent.transform.rotation.y, 0
     }
+
 }
