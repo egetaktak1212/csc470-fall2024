@@ -8,10 +8,11 @@ using UnityEngine.UIElements;
 public class plane_script : MonoBehaviour
 {
     public GameObject cameraObject;
-
+    public GameObject rotationObjectY;
 
     float xRotationSpeed = 120f;
-    float yRotationSpeed = 120f;
+    float zRotationSpeed = 120f;
+    float yRotationSpeed = 40f;
     public float forwardSpeed = 5f;
     bool boost = false;
     float Timer;
@@ -20,7 +21,7 @@ public class plane_script : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+       
     }
 
     // Update is called once per frame
@@ -28,15 +29,21 @@ public class plane_script : MonoBehaviour
     {
         float hAxis = -Input.GetAxis("Horizontal"); // -1 if left is pressed, 1 if right is pressed, 0 if neither
         float vAxis = Input.GetAxis("Vertical"); // -1 if down is pressed, 1 if up is pressed, 0 if neither
+        float yAxis = Input.GetAxis("Yaw");
 
         // Apply the rotation based on the inputs
         Vector3 amountToRotate = new Vector3(0, 0, 0);
         amountToRotate.x = vAxis * xRotationSpeed;
-        amountToRotate.z = hAxis * yRotationSpeed;
+        amountToRotate.z = hAxis * zRotationSpeed;
+        amountToRotate.y = yAxis * yRotationSpeed;
         amountToRotate *= Time.deltaTime; // amountToRotate = amountToRotate * Time.deltaTime;
+
+        //this rotates the plane based on the local y axis of the empty. I think.
+        //transform.RotateAround(rotationObjectY.transform.position, Vector3.up, amountToRotate.y);
+        
         transform.Rotate(amountToRotate, Space.Self);
 
-
+        
         transform.position += transform.forward * Time.deltaTime * forwardSpeed * booster;
         //print(booster);
         Vector3 camPos = transform.position;
@@ -47,7 +54,7 @@ public class plane_script : MonoBehaviour
         cameraObject.transform.LookAt(transform.position);
 
         Timer += Time.deltaTime;
-
+        Debug.Log(transform.localRotation);
     }
 
     private void OnTriggerEnter(Collider other)
