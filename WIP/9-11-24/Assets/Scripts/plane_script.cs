@@ -225,7 +225,7 @@ public class plane_script : MonoBehaviour
         
 
         Timer += Time.deltaTime;
-        Debug.Log();
+        Debug.Log("dink");
         //transform.rotation.eulerAngles
     }
 
