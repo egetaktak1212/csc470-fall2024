@@ -15,7 +15,7 @@ public class plane_script : MonoBehaviour
     float xRotationSpeed = 120f;
     float zRotationSpeed = 120f;
     float yRotationSpeed = 100f;
-    public float forwardSpeed = 5f;
+    float forwardSpeed = 20f;
     bool boost = false;
     float Timer = 0;
     float time;
@@ -29,7 +29,7 @@ public class plane_script : MonoBehaviour
     float slowDownBig;
     float slowDownBoolBig;
     float slowPowerBig;
-    float slowDownSpeedBig = 0.02f;
+    float slowDownSpeedBig = 0.05f;
     float gradPower;
     float gradPowerBig;
     // Start is called before the first frame update
@@ -94,11 +94,11 @@ public class plane_script : MonoBehaviour
 
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
             {
-                slowPower = 0;
+                slowPower = 1;
                 if (gradRotate < 1)
                 {
-                    gradRotate += 0.7f * Time.deltaTime * Mathf.Pow(2, gradPower);
-                    gradPower += 0.01f;
+                    gradRotate += 0.15f * Time.deltaTime * Mathf.Pow(2, gradPower);
+                    gradPower += 0.1f;
                 }
             }
             if (Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.D))
@@ -113,8 +113,8 @@ public class plane_script : MonoBehaviour
                 { //if slowdownbool is 1, that means we were going right. this means that slowDown is going down
                     if (slowDown > 0)
                     {
-                        slowDown += -slowDownBool * 0.03f * Time.deltaTime * Mathf.Pow(2, slowPower);
-                        slowPower += .01f;
+                        slowDown += -slowDownBool * 0.02f * Time.deltaTime * Mathf.Pow(2, slowPower);
+                        slowPower += .02f;
                     }
                     else
                     {
@@ -125,7 +125,7 @@ public class plane_script : MonoBehaviour
                 { //slowdownbool negative, we goin left, this means slowDown is goin up
                     if (slowDown < 0)
                     {
-                        slowDown += -slowDownBool * 0.03f * Time.deltaTime * Mathf.Pow(2, slowPower);
+                        slowDown += -slowDownBool * 0.01f * Time.deltaTime * Mathf.Pow(2, slowPower);
                         slowPower += .01f;
                     }
                     else
@@ -162,11 +162,11 @@ public class plane_script : MonoBehaviour
 
             if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S))
             {
-                slowPowerBig = 0;
+                slowPowerBig = 1;
                 if (gradRotateBig < 1)
                 {
-                    gradRotateBig += 0.8f * Time.deltaTime * Mathf.Pow(2, gradPowerBig);
-                    gradPowerBig += 0.01f; ;
+                    gradRotateBig += 0.3f * Time.deltaTime * Mathf.Pow(2, gradPowerBig);
+                    gradPowerBig += 0.1f; ;
                 }
             }
 
@@ -177,7 +177,7 @@ public class plane_script : MonoBehaviour
                 { //if slowdownboolbig is 1, that means we were going up. this means that slowDownBig is going down
                     if (slowDownBig > 0)
                     {
-                        slowDownBig += -slowDownBoolBig * 0.06f * Time.deltaTime * Mathf.Pow(2, slowPowerBig);
+                        slowDownBig += -slowDownBoolBig * 0.03f * Time.deltaTime * Mathf.Pow(2, slowPowerBig);
                         slowPowerBig += .01f;
                     }
                     else
@@ -189,7 +189,7 @@ public class plane_script : MonoBehaviour
                 { //slowdownboolBig negative, we goin down, this means slowDownBig is goin up
                     if (slowDownBig < 0)
                     {
-                        slowDownBig += -slowDownBoolBig * 0.02f * Time.deltaTime * Mathf.Pow(2, slowPowerBig);
+                        slowDownBig += -slowDownBoolBig * 0.03f * Time.deltaTime * Mathf.Pow(2, slowPowerBig);
                         slowPowerBig += .01f;
                     }
                     else
@@ -216,14 +216,14 @@ public class plane_script : MonoBehaviour
         //print(booster);
         Vector3 camPos = transform.position;
         camPos += -transform.forward * 6f;
-        camPos += Vector3.up * 4f;
+        camPos += Vector3.up * 2f;
         cameraObject.transform.position = camPos;
-
-        cameraObject.transform.LookAt(transform.position);
+        Vector3 thing = new Vector3(0, 1, 0);
+        cameraObject.transform.LookAt(transform.position + thing);
 
 
         Timer += Time.deltaTime;
-        Debug.Log(gradPowerBig);
+        Debug.Log(transform.rotation.eulerAngles);
 
     }
 
