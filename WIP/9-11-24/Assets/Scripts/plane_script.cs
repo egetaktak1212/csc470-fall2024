@@ -222,9 +222,11 @@ public class plane_script : MonoBehaviour
         cameraObject.transform.LookAt(transform.position + thing);
 
 
-        Timer += Time.deltaTime;
-        Debug.Log(transform.rotation.eulerAngles);
+        
 
+        Timer += Time.deltaTime;
+        Debug.Log();
+        //transform.rotation.eulerAngles
     }
 
     private void OnTriggerEnter(Collider other)
