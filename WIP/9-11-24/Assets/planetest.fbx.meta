@@ -3,7 +3,27 @@ guid: 64d2970f4a1cfc54d8d535e59dab0ab4
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Checkered
+    second: {fileID: 2100000, guid: dfe538557ebcd6740b663466844646fa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material
+    second: {fileID: 2100000, guid: 4f0abdfa495b7d148b0d8b223a5b2f48, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mid of Plane
+    second: {fileID: 2100000, guid: 2b45d19fc9588fb438c2dfc7c59c2c2c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Window
+    second: {fileID: 2100000, guid: 1ab0ac3a430c7c04d9758f22b3316f04, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
