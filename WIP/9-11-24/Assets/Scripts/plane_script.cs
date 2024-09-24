@@ -97,8 +97,9 @@ public class plane_script : MonoBehaviour
                 slowPower = 1;
                 if (gradRotate < 1)
                 {
-                    gradRotate += 0.15f * Time.deltaTime * Mathf.Pow(2, gradPower);
-                    gradPower += 0.1f;
+                    gradRotate += 1f * Time.deltaTime;
+                    //* Mathf.Pow(2, gradPower);
+                    //gradPower += 5f * Time.deltaTime;
                 }
             }
             if (Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.D))
@@ -114,7 +115,7 @@ public class plane_script : MonoBehaviour
                     if (slowDown > 0)
                     {
                         slowDown += -slowDownBool * 0.02f * Time.deltaTime * Mathf.Pow(2, slowPower);
-                        slowPower += .02f;
+                        slowPower += 1f * Time.deltaTime;
                     }
                     else
                     {
@@ -126,7 +127,7 @@ public class plane_script : MonoBehaviour
                     if (slowDown < 0)
                     {
                         slowDown += -slowDownBool * 0.01f * Time.deltaTime * Mathf.Pow(2, slowPower);
-                        slowPower += .01f;
+                        slowPower += 1f * Time.deltaTime;
                     }
                     else
                     {
@@ -165,8 +166,9 @@ public class plane_script : MonoBehaviour
                 slowPowerBig = 1;
                 if (gradRotateBig < 1)
                 {
-                    gradRotateBig += 0.3f * Time.deltaTime * Mathf.Pow(2, gradPowerBig);
-                    gradPowerBig += 0.1f; ;
+                    gradRotateBig += 0.9f * Time.deltaTime;
+                    //* Mathf.Pow(2, gradPowerBig);
+                    //gradPowerBig += 0.5f * Time.deltaTime;
                 }
             }
 
@@ -178,7 +180,7 @@ public class plane_script : MonoBehaviour
                     if (slowDownBig > 0)
                     {
                         slowDownBig += -slowDownBoolBig * 0.03f * Time.deltaTime * Mathf.Pow(2, slowPowerBig);
-                        slowPowerBig += .01f;
+                        slowPowerBig += .1f * Time.deltaTime;
                     }
                     else
                     {
@@ -190,7 +192,7 @@ public class plane_script : MonoBehaviour
                     if (slowDownBig < 0)
                     {
                         slowDownBig += -slowDownBoolBig * 0.03f * Time.deltaTime * Mathf.Pow(2, slowPowerBig);
-                        slowPowerBig += .01f;
+                        slowPowerBig += .1f * Time.deltaTime;
                     }
                     else
                     {
@@ -225,7 +227,7 @@ public class plane_script : MonoBehaviour
         
 
         Timer += Time.deltaTime;
-        Debug.Log("dink");
+        Debug.Log(gradRotate);
         //transform.rotation.eulerAngles
     }
 
