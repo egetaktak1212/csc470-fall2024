@@ -18,7 +18,8 @@ public class RotationLockX : MonoBehaviour
         //plane. However, I only want it to rotate on one axis with the plane, the other axis should stay constant. So, here I'm trying to set the rotation of
         //the empty to the rotation of the plane ONLY in the left right turn axis. Now, i have no idea which axis that is, hence, testing.
         transform.position = parent.transform.position;
-        transform.rotation = new Quaternion(parent.transform.rotation.x, 0, 0, parent.transform.rotation.w);
+
+        transform.rotation = Quaternion.Euler(parent.transform.rotation.eulerAngles.x, parent.transform.rotation.eulerAngles.y, 0);
 
         //0, parent.transform.rotation.y, 0
     }

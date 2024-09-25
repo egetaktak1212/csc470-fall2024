@@ -11,6 +11,7 @@ public class plane_script : MonoBehaviour
     public GameObject cameraObject;
     public GameObject rotationObjectY;
     public GameObject rotationObjectX;
+    public GameObject plane;
 
     float xRotationSpeed = 120f;
     float zRotationSpeed = 120f;
@@ -206,11 +207,16 @@ public class plane_script : MonoBehaviour
         //END OF GRAD MOVEMENT CODE
 
         //Rotates usign its position as the axis. It's the same as having an empty parented
-        transform.RotateAround(transform.position, Vector3.up, (amountToRotate.y * gradRotate) + slowDown);
+        float turnAmount = ((amountToRotate.y * gradRotate) + slowDown);
+        transform.RotateAround(transform.position, Vector3.up, turnAmount);
+        //find out max and min turn amount, turn it into an angle. max is 180, min is 0. turn based off that
+        //transform.Rotate(0, 0, -turnAmount, Space.Self);
 
         //Rotates on its local x axis. I want to find a way to measure this rotation and limit it.
+        //transform.RotateAround(rotationObjectX.transform.position, new Vector3(1,0,0), (amountToRotate.x * gradRotateBig) + slowDownBig);
         transform.Rotate((amountToRotate.x * gradRotateBig) + slowDownBig,0,0, Space.Self);
-
+        //plane is an empty that controls the plane mesh. so i just rotate the plane mesh without affecting the movement of the actual plane. the plane can rotate however it wants now
+        plane.transform.Rotate(0, 0, turnAmount, Space.Self);
 
         
         transform.position += transform.forward * Time.deltaTime * forwardSpeed * booster;
