@@ -216,9 +216,11 @@ public class plane_script : MonoBehaviour
         //transform.RotateAround(rotationObjectX.transform.position, new Vector3(1,0,0), (amountToRotate.x * gradRotateBig) + slowDownBig);
         transform.Rotate((amountToRotate.x * gradRotateBig) + slowDownBig,0,0, Space.Self);
         //plane is an empty that controls the plane mesh. so i just rotate the plane mesh without affecting the movement of the actual plane. the plane can rotate however it wants now
-        plane.transform.Rotate(0, 0, turnAmount, Space.Self);
+        plane.transform.eulerAngles += new Vector3(0, 0, -turnAmount);
+        //plane.transform.eulerAngles = new Vector3(0,0, Mathf.Clamp(plane.transform.eulerAngles.z, -180, 180));
+        //plane.transform.eulerAngles = new Vector3(0, turnAmount, 0);
+        //plane.transform.rotation = Quaternion.Euler(0,0,0);
 
-        
         transform.position += transform.forward * Time.deltaTime * forwardSpeed * booster;
         //print(booster);
         Vector3 camPos = transform.position;
@@ -232,7 +234,7 @@ public class plane_script : MonoBehaviour
         
 
         Timer += Time.deltaTime;
-        Debug.Log(gradRotate);
+        Debug.Log(transform.localEulerAngles);
         //transform.rotation.eulerAngles
     }
 
