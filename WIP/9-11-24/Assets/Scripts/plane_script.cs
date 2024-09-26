@@ -16,6 +16,7 @@ public class plane_script : MonoBehaviour
     float xRotationSpeed = 120f;
     float zRotationSpeed = 120f;
     float yRotationSpeed = 100f;
+    float forwardSpeedMult;
     float forwardSpeed = 20f;
     bool boost = false;
     float Timer = 0;
@@ -33,9 +34,18 @@ public class plane_script : MonoBehaviour
     float slowDownSpeedBig = 0.05f;
     float gradPower;
     float gradPowerBig;
+    float turnDeltaCalc;
+    float turnAmount;
+    float wingSpeedD = 0;
+    float wingSpeedA = 0;
+    float wingSpeedNoneD = 0;
+    float wingSpeedNoneA = 0;
+    float wingSpeedPowerA = 0;
+    float wingSpeedPowerD = 0;
     // Start is called before the first frame update
     void Start()
     {
+        turnDeltaCalc = turnAmount;
     }
 
     // Update is called once per frame
@@ -52,6 +62,25 @@ public class plane_script : MonoBehaviour
         amountToRotate.y = yAxis * yRotationSpeed;
         amountToRotate *= Time.deltaTime; // amountToRotate = amountToRotate * Time.deltaTime;
 
+        float Rotation;
+        if (plane.transform.eulerAngles.z <= 180f)
+        {
+            Rotation = plane.transform.eulerAngles.z;
+        }
+        else
+        {
+            Rotation = plane.transform.eulerAngles.z - 360f;
+        }
+
+        float RotationX;
+        if (transform.eulerAngles.x <= 180f)
+        {
+            RotationX = transform.eulerAngles.x;
+        }
+        else
+        {
+            RotationX = transform.eulerAngles.x - 360f;
+        }
 
 
         //GRADUAL MOVEMENT CODE STARTS HERE, TAKE TYLENOL
@@ -207,22 +236,113 @@ public class plane_script : MonoBehaviour
         //END OF GRAD MOVEMENT CODE
 
         //Rotates usign its position as the axis. It's the same as having an empty parented
-        float turnAmount = ((amountToRotate.y * gradRotate) + slowDown);
+        turnAmount = ((amountToRotate.y * gradRotate) + slowDown);
         transform.RotateAround(transform.position, Vector3.up, turnAmount);
         //find out max and min turn amount, turn it into an angle. max is 180, min is 0. turn based off that
-        //transform.Rotate(0, 0, -turnAmount, Space.Self);
 
-        //Rotates on its local x axis. I want to find a way to measure this rotation and limit it.
-        //transform.RotateAround(rotationObjectX.transform.position, new Vector3(1,0,0), (amountToRotate.x * gradRotateBig) + slowDownBig);
-        transform.Rotate((amountToRotate.x * gradRotateBig) + slowDownBig,0,0, Space.Self);
+        float verticalMagic = (amountToRotate.x * gradRotateBig) + slowDownBig;
+        //negative means up
+
+
+        //this stops the plane from flipping by going up too much
+        if (verticalMagic > 0)
+        {
+            if (RotationX < 80)
+            {
+                transform.Rotate(verticalMagic, 0, 0, Space.Self);
+            }
+        }
+
+        if (verticalMagic < 0)
+        {
+            if (RotationX > -80)
+            {
+                transform.Rotate(verticalMagic, 0, 0, Space.Self);
+            }
+        }
+
         //plane is an empty that controls the plane mesh. so i just rotate the plane mesh without affecting the movement of the actual plane. the plane can rotate however it wants now
-        plane.transform.eulerAngles += new Vector3(0, 0, -turnAmount);
-        //plane.transform.eulerAngles = new Vector3(0,0, Mathf.Clamp(plane.transform.eulerAngles.z, -180, 180));
-        //plane.transform.eulerAngles = new Vector3(0, turnAmount, 0);
-        //plane.transform.rotation = Quaternion.Euler(0,0,0);
+
 
         transform.position += transform.forward * Time.deltaTime * forwardSpeed * booster;
-        //print(booster);
+
+        //code to make the wings turn when plane is turning
+        if (Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.D))
+        {
+            if (turnAmount > 0)
+            {
+                wingSpeedA = 0;
+                if (Rotation > -30f && Rotation < 30.5f)
+                {
+                    plane.transform.Rotate(0, 0, wingSpeedD, Space.Self);
+                    wingSpeedD -= .2f * Time.deltaTime;
+                }
+            }
+            else if (turnAmount < 0)
+            {
+                wingSpeedD = 0;
+                if (Rotation > -30.5f && Rotation < 30f)
+                {
+                    plane.transform.Rotate(0, 0, wingSpeedA, Space.Self);
+                    wingSpeedA += .2f * Time.deltaTime;
+                }
+            }
+        }
+        else if (Input.GetKey(KeyCode.A))
+        {
+            wingSpeedD = 0;
+            wingSpeedNoneD = 0;
+            wingSpeedNoneA = 0;
+            wingSpeedPowerD = 0;
+            wingSpeedPowerA = 0;
+            if (Rotation > -30.5f && Rotation < 30f)
+            {
+                plane.transform.Rotate(0, 0, wingSpeedA, Space.Self);
+                wingSpeedA += .2f * Time.deltaTime;
+            }
+        }
+        else if (Input.GetKey(KeyCode.D))
+        {
+            wingSpeedA = 0;
+            wingSpeedNoneD = 0;
+            wingSpeedNoneA = 0;
+            wingSpeedPowerD = 0;
+            wingSpeedPowerA = 0;
+            if (Rotation > -30f && Rotation < 30.5f)
+            {
+                plane.transform.Rotate(0, 0, wingSpeedD, Space.Self);
+                wingSpeedD -= .2f * Time.deltaTime;
+            }
+        }
+
+        if (!(Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D)))
+        {
+            wingSpeedA = 0;
+            wingSpeedD = 0;
+            if (Rotation > 0.5)
+            {
+
+                plane.transform.Rotate(0, 0, wingSpeedNoneA, Space.Self);
+                wingSpeedNoneA -= .5f * Time.deltaTime * Mathf.Pow(2, wingSpeedPowerA);
+                wingSpeedPowerA += 0.1f * Time.deltaTime;
+            }
+            if (Rotation < -0.5)
+            {
+
+                plane.transform.Rotate(0, 0, wingSpeedNoneD, Space.Self);
+                wingSpeedNoneD += .5f * Time.deltaTime * Mathf.Pow(2, wingSpeedPowerD);
+                wingSpeedPowerD += 0.1f * Time.deltaTime;
+            }
+
+        }
+
+        forwardSpeedMult = RotationX * 0.1f;
+        forwardSpeed = 20f + forwardSpeedMult;
+
+
+        Camera.main.fieldOfView = 60 + forwardSpeed * 1f;
+
+        //cam controls
         Vector3 camPos = transform.position;
         camPos += -transform.forward * 6f;
         camPos += Vector3.up * 2f;
@@ -231,11 +351,12 @@ public class plane_script : MonoBehaviour
         cameraObject.transform.LookAt(transform.position + thing);
 
 
-        
+
 
         Timer += Time.deltaTime;
-        Debug.Log(transform.localEulerAngles);
-        //transform.rotation.eulerAngles
+        //Debug.Log(wingSpeedA + "    " + wingSpeedD + "     "+ Rotation + "         " + turnAmount);
+        Debug.Log(verticalMagic);
+
     }
 
     private void OnTriggerEnter(Collider other)
@@ -248,7 +369,8 @@ public class plane_script : MonoBehaviour
         }
     }
 
-    public void Boost() {
+    public void Boost()
+    {
         booster = 2;
     }
 
