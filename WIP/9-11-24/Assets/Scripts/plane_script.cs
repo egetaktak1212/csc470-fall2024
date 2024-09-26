@@ -295,7 +295,7 @@ public class plane_script : MonoBehaviour
             wingSpeedNoneA = 0;
             wingSpeedPowerD = 1;
             wingSpeedPowerA = 1;
-            if (Rotation > -31f && Rotation < 30f)
+            if (Rotation > -33f && Rotation < 30f)
             {
                 plane.transform.Rotate(0, 0, wingSpeedA * 900 * Time.deltaTime, Space.Self);
                 wingSpeedA += .2f * Time.deltaTime;
@@ -308,7 +308,7 @@ public class plane_script : MonoBehaviour
             wingSpeedNoneA = 0;
             wingSpeedPowerD = 1;
             wingSpeedPowerA = 1;
-            if (Rotation > -30f && Rotation < 32f)
+            if (Rotation > -30f && Rotation < 33f)
             {
                 plane.transform.Rotate(0, 0, wingSpeedD * 900 * Time.deltaTime, Space.Self);
                 wingSpeedD -= .2f * Time.deltaTime;
@@ -355,24 +355,26 @@ public class plane_script : MonoBehaviour
 
         Timer += Time.deltaTime;
         //Debug.Log(wingSpeedA + "    " + wingSpeedD + "     "+ Rotation + "         " + turnAmount);
-        Debug.Log(Rotation);
+        Debug.Log(booster);
 
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        print("collision");
+        
         time = Timer;
         if (other.CompareTag("Booster"))
         {
-            Boost();
+
+            this.booster = 2;
         }
     }
 
-    public void Boost()
-    {
-        booster = 2;
-    }
+    //public void Boost()
+    //{
+        
+    //    booster = 2;
+    //}
 
 
 }
