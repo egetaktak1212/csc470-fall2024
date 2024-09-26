@@ -236,7 +236,7 @@ public class plane_script : MonoBehaviour
         //END OF GRAD MOVEMENT CODE
 
         //Rotates usign its position as the axis. It's the same as having an empty parented
-        turnAmount = ((amountToRotate.y * gradRotate) + slowDown);
+        turnAmount = 2 * ((amountToRotate.y * gradRotate) + slowDown);
         transform.RotateAround(transform.position, Vector3.up, turnAmount);
         //find out max and min turn amount, turn it into an angle. max is 180, min is 0. turn based off that
 
@@ -293,9 +293,9 @@ public class plane_script : MonoBehaviour
             wingSpeedD = 0;
             wingSpeedNoneD = 0;
             wingSpeedNoneA = 0;
-            wingSpeedPowerD = 0;
-            wingSpeedPowerA = 0;
-            if (Rotation > -30.5f && Rotation < 30f)
+            wingSpeedPowerD = 1;
+            wingSpeedPowerA = 1;
+            if (Rotation > -31f && Rotation < 30f)
             {
                 plane.transform.Rotate(0, 0, wingSpeedA * 900 * Time.deltaTime, Space.Self);
                 wingSpeedA += .2f * Time.deltaTime;
@@ -306,9 +306,9 @@ public class plane_script : MonoBehaviour
             wingSpeedA = 0;
             wingSpeedNoneD = 0;
             wingSpeedNoneA = 0;
-            wingSpeedPowerD = 0;
-            wingSpeedPowerA = 0;
-            if (Rotation > -30f && Rotation < 30.5f)
+            wingSpeedPowerD = 1;
+            wingSpeedPowerA = 1;
+            if (Rotation > -30f && Rotation < 32f)
             {
                 plane.transform.Rotate(0, 0, wingSpeedD * 900 * Time.deltaTime, Space.Self);
                 wingSpeedD -= .2f * Time.deltaTime;
@@ -323,15 +323,15 @@ public class plane_script : MonoBehaviour
             {
 
                 plane.transform.Rotate(0, 0, wingSpeedNoneA * 900 * Time.deltaTime, Space.Self);
-                wingSpeedNoneA -= .5f * Time.deltaTime * Mathf.Pow(2, wingSpeedPowerA);
-                wingSpeedPowerA += 0.1f * Time.deltaTime;
+                wingSpeedNoneA -= .5f * Time.deltaTime * wingSpeedPowerA;
+                wingSpeedPowerA /= 1.1f;
             }
             if (Rotation < -0.5)
             {
 
                 plane.transform.Rotate(0, 0, wingSpeedNoneD * 900 * Time.deltaTime, Space.Self);
-                wingSpeedNoneD += .5f * Time.deltaTime * Mathf.Pow(2, wingSpeedPowerD);
-                wingSpeedPowerD += 0.1f * Time.deltaTime;
+                wingSpeedNoneD += .5f * Time.deltaTime * wingSpeedPowerD;
+                wingSpeedPowerD /= 1.1f;
             }
 
         }
@@ -355,7 +355,7 @@ public class plane_script : MonoBehaviour
 
         Timer += Time.deltaTime;
         //Debug.Log(wingSpeedA + "    " + wingSpeedD + "     "+ Rotation + "         " + turnAmount);
-        Debug.Log(verticalMagic);
+        Debug.Log(Rotation);
 
     }
 
