@@ -274,7 +274,7 @@ public class plane_script : MonoBehaviour
                 wingSpeedA = 0;
                 if (Rotation > -30f && Rotation < 30.5f)
                 {
-                    plane.transform.Rotate(0, 0, wingSpeedD, Space.Self);
+                    plane.transform.Rotate(0, 0, wingSpeedD * 900 * Time.deltaTime, Space.Self);
                     wingSpeedD -= .2f * Time.deltaTime;
                 }
             }
@@ -283,7 +283,7 @@ public class plane_script : MonoBehaviour
                 wingSpeedD = 0;
                 if (Rotation > -30.5f && Rotation < 30f)
                 {
-                    plane.transform.Rotate(0, 0, wingSpeedA, Space.Self);
+                    plane.transform.Rotate(0, 0, wingSpeedA * 900 * Time.deltaTime, Space.Self);
                     wingSpeedA += .2f * Time.deltaTime;
                 }
             }
@@ -297,7 +297,7 @@ public class plane_script : MonoBehaviour
             wingSpeedPowerA = 0;
             if (Rotation > -30.5f && Rotation < 30f)
             {
-                plane.transform.Rotate(0, 0, wingSpeedA, Space.Self);
+                plane.transform.Rotate(0, 0, wingSpeedA * 900 * Time.deltaTime, Space.Self);
                 wingSpeedA += .2f * Time.deltaTime;
             }
         }
@@ -310,7 +310,7 @@ public class plane_script : MonoBehaviour
             wingSpeedPowerA = 0;
             if (Rotation > -30f && Rotation < 30.5f)
             {
-                plane.transform.Rotate(0, 0, wingSpeedD, Space.Self);
+                plane.transform.Rotate(0, 0, wingSpeedD * 900 * Time.deltaTime, Space.Self);
                 wingSpeedD -= .2f * Time.deltaTime;
             }
         }
@@ -322,14 +322,14 @@ public class plane_script : MonoBehaviour
             if (Rotation > 0.5)
             {
 
-                plane.transform.Rotate(0, 0, wingSpeedNoneA, Space.Self);
+                plane.transform.Rotate(0, 0, wingSpeedNoneA * 900 * Time.deltaTime, Space.Self);
                 wingSpeedNoneA -= .5f * Time.deltaTime * Mathf.Pow(2, wingSpeedPowerA);
                 wingSpeedPowerA += 0.1f * Time.deltaTime;
             }
             if (Rotation < -0.5)
             {
 
-                plane.transform.Rotate(0, 0, wingSpeedNoneD, Space.Self);
+                plane.transform.Rotate(0, 0, wingSpeedNoneD * 900 * Time.deltaTime, Space.Self);
                 wingSpeedNoneD += .5f * Time.deltaTime * Mathf.Pow(2, wingSpeedPowerD);
                 wingSpeedPowerD += 0.1f * Time.deltaTime;
             }
