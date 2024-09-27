@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - Booster
+  - SuperBoost
+  - Terrain
+  - Collectible
   layers:
   - Default
   - TransparentFX
