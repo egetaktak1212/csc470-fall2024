@@ -25,7 +25,7 @@ public class plane_script : MonoBehaviour
     float zRotationSpeed = 120f;
     float yRotationSpeed = 100f;
     float forwardSpeedMult;
-    float forwardSpeed = 40f;
+    static float forwardSpeed = 20f;
     static bool boost = false;
     static float boostTimer = 0;
     float Timer = 0;
@@ -67,6 +67,7 @@ public class plane_script : MonoBehaviour
         boost = false;
         booster = 1;
         score = 0;
+        forwardSpeed = 20;
 
     }
 
@@ -79,9 +80,15 @@ public class plane_script : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //speed decreases gradually (this was a requirement, please see it, i only did it for the requirement)
+        if (forwardSpeed > 0)
+        {
+            forwardSpeed -= 1f * Time.deltaTime;
+        }
         juiceMeter.text = "JUICE METER: " + score;
 
-        if (Input.GetKey(KeyCode.R)) {
+        if (Input.GetKey(KeyCode.R))
+        {
             SceneManager.LoadScene(0);
 
         }
@@ -272,7 +279,7 @@ public class plane_script : MonoBehaviour
         //END OF GRAD MOVEMENT CODE
 
         //Rotates usign its position as the axis. It's the same as having an empty parented
-        turnAmount = (2*(amountToRotate.y * gradRotate) + slowDown);
+        turnAmount = (2 * (amountToRotate.y * gradRotate) + slowDown);
         transform.RotateAround(transform.position, Vector3.up, turnAmount);
         //find out max and min turn amount, turn it into an angle. max is 180, min is 0. turn based off that
 
@@ -300,25 +307,28 @@ public class plane_script : MonoBehaviour
         //plane is an empty that controls the plane mesh. so i just rotate the plane mesh without affecting the movement of the actual plane. the plane can rotate however it wants now
 
         //boost mechanic
-        if (boost) {
-            if (boostTimer < 5)
+        if (boost)
+        {
+            if (boostTimer < 7)
             {
-                booster = 4;
+                booster = 3;
                 boostTimer += Time.deltaTime;
-                if (boostFOV < 20) {
+                if (boostFOV < 20)
+                {
                     boostFOV += 50 * Time.deltaTime;
                 }
             }
-            else if (boostTimer >= 5)
+            else if (boostTimer >= 7)
             {
 
 
                 booster = 1;
                 boostTimer = 0;
                 boost = false;
-            }     
+            }
         }
-        if (boostTimer == 0) {
+        if (boostTimer == 0)
+        {
             if (boostFOV > 0)
             {
                 boostFOV -= 20 * Time.deltaTime;
@@ -356,9 +366,9 @@ public class plane_script : MonoBehaviour
         }
 
 
+        forwardSpeedMult = RotationX * 0.1f;
 
-
-        transform.position += transform.forward * Time.deltaTime * forwardSpeed * booster * superBooster;
+        transform.position += transform.forward * Time.deltaTime * (forwardSpeed + forwardSpeedMult) * booster * superBooster;
 
         //code to make the wings turn when plane is turning
         if (Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.D))
@@ -432,8 +442,8 @@ public class plane_script : MonoBehaviour
 
 
 
-        forwardSpeedMult = RotationX * 0.1f;
-        forwardSpeed = 20f + forwardSpeedMult;
+        
+        //forwardSpeed = 20f + forwardSpeedMult;
 
 
         Camera.main.fieldOfView = 60 + forwardSpeed * 1f + boostFOV + superBoostFOV;
@@ -445,18 +455,18 @@ public class plane_script : MonoBehaviour
         cameraObject.transform.position = camPos;
         Vector3 thing = new Vector3(0, 1, 0);
         cameraObject.transform.LookAt(transform.position + thing);
-        
+
 
 
         Timer += Time.deltaTime;
         //Debug.Log(wingSpeedA + "    " + wingSpeedD + "     "+ Rotation + "         " + turnAmount);
-        //Debug.Log(boostTimer + "   "  + boostFOV);
+        Debug.Log(forwardSpeed);
 
     }
 
     public void OnTriggerEnter(Collider other)
     {
-    
+
         if (other.CompareTag("Booster"))
         {
             boostTimer = 0;
@@ -464,25 +474,29 @@ public class plane_script : MonoBehaviour
 
         }
 
-        if (other.CompareTag("SuperBoost")) {
+        if (other.CompareTag("SuperBoost"))
+        {
             superBoostTimer = 0;
             superBoost = true;
-        
+
         }
 
-        if (other.CompareTag("Collectible")) { 
+        if (other.CompareTag("Collectible"))
+        {
             Destroy(other.gameObject);
             score++;
-            
+            forwardSpeed = 20;
+
         }
 
-        
+
 
     }
 
     public void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Terrain")) {
+        if (collision.gameObject.CompareTag("Terrain"))
+        {
             Debug.Log("collided");
             SceneManager.LoadScene("SampleScene");
         }
