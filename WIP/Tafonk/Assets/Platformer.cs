@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -10,7 +11,7 @@ public class Platformer : MonoBehaviour
 
 
     float rotateSpeed = 90;
-    float moveSpeed = 8f;
+    float moveSpeed = 13f;
     float jumpVelocity;
 
 
@@ -20,10 +21,12 @@ public class Platformer : MonoBehaviour
     float gravity;
 
     // These will be used to create a "dash"
-    float dashAmount = 8;
+    float dashAmount = 16;
     float dashVelocity = 0;
     float friction = -2.8f;
-
+    float dashTimer = 0;
+    float dashLength = .2f;
+    int dashCount = 0;  
 
     // This will keep track of how long we have been falling, we will use this 
     // for "coyote time" (keeping track of how long it has been since we have
@@ -34,6 +37,8 @@ public class Platformer : MonoBehaviour
     float maxJumpTime = .75f;
     float maxJumpHeight = 4.0f;
     bool calcFallTime = false;
+
+    bool isDashing = false;
 
 
     // Start is called before the first frame update
@@ -47,7 +52,7 @@ public class Platformer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        Cursor.lockState = CursorLockMode.Locked;
         float hAxis = Input.GetAxis("Horizontal");
         float vAxis = Input.GetAxis("Vertical");
 
@@ -56,30 +61,43 @@ public class Platformer : MonoBehaviour
         // NOTE: If the player isn't pressing left or right, hAxis will be 0 and there will be no rotation
         //transform.Rotate(0, rotateSpeed * hAxis * Time.deltaTime, 0);
 
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        if (dashTimer == 0)
         {
+            isDashing = false;
+            dashVelocity = 0;
+        }
+
+        if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing && dashCount == 0)
+        {
+            isDashing = true;
             dashVelocity = dashAmount;
+            yVelocity = 0;
+            dashTimer = dashLength;
+            dashCount = 1;
+            
         }
         // Slow the dash down, and keep it from going below zero (using clamp)
-        dashVelocity += friction * Time.deltaTime;
-        dashVelocity = Mathf.Clamp(dashVelocity, 0, 10000);
-        //Debug.Log(yVelocity);
+        dashTimer -= Time.deltaTime;
+        dashTimer = Mathf.Clamp(dashTimer, 0, 10000);
+
+
         if (!cc.isGrounded)
         {
             // *** If we are in here, we are IN THE AIR ***
 
-            
+
             // Let the player jump if they have only been falling for a little bit
-            if (Input.GetKeyDown(KeyCode.Space) && yVelocity < 0.0f)
+            if (Input.GetKeyDown(KeyCode.Space) && yVelocity < 0.0f && !isDashing)
             {
-                
+
                 calcFallTime = true;
             }
 
-            if (calcFallTime) {
-                
+            if (calcFallTime)
+            {
+
                 fallingTime += Time.deltaTime;
-                Debug.Log(fallingTime);
+
             }
 
             // If we go in this block of code, cc.isGrounded is false, which means
@@ -93,24 +111,31 @@ public class Platformer : MonoBehaviour
             //}
 
             // Apply gravity to the yVelocity
-
-            if (yVelocity > 0.0f)
+            if (!isDashing)
             {
-                yVelocity += gravity * Time.deltaTime;
-            }
-            else {
-                yVelocity += gravity * 2.0f * Time.deltaTime;
+                if (yVelocity > 0.0f)
+                {
+                    yVelocity += gravity * Time.deltaTime;
+                }
+                else if (yVelocity <= 0.0f)
+                {
+                    yVelocity += gravity * 2.0f * Time.deltaTime;
+                }
+
+                if (Input.GetKeyUp(KeyCode.Space)) { yVelocity = 0.0f; }
+
             }
         }
         else
         {
-
+            dashCount = 0;
             yVelocity = -2;
 
-            
-            
-            if ((fallingTime < .2f) && calcFallTime) {
-                Debug.Log("yep");
+
+
+            if ((fallingTime < .2f) && calcFallTime)
+            {
+
                 yVelocity = jumpVelocity;
             }
             calcFallTime = false;
@@ -124,10 +149,12 @@ public class Platformer : MonoBehaviour
             fallingTime = 0;
 
             // Jump!
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
+            if (!isDashing) { 
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
 
-                yVelocity = jumpVelocity;
+                    yVelocity = jumpVelocity;
+                }
             }
         }
 
@@ -138,16 +165,33 @@ public class Platformer : MonoBehaviour
         //Vector3 amountToMove = transform.forward * moveSpeed * vAxis;
 
         Vector3 amountToMove = new Vector3(hAxis, 0, vAxis) * moveSpeed;
-        amountToMove = cameraTransform.TransformDirection(amountToMove);
-        amountToMove.y = 0;
+
+        Vector3 camForward = cameraTransform.forward;
+        Vector3 camRight = cameraTransform.right;
+
+        camForward.y = 0;
+        camRight.y = 0;
+        camForward = camForward.normalized;
+        camRight = camRight.normalized;
+
+        Vector3 forwardRelative = amountToMove.z * camForward;
+        Vector3 rightRelative = amountToMove.x * camRight;
+
+        Vector3 moveDir = forwardRelative + rightRelative;
+
+        amountToMove = new Vector3(moveDir.x, 0, moveDir.z);
+
 
         // Apply the dash (i.e. add the forward vector scaled by the forwardVelocity)
         amountToMove += amountToMove.normalized * dashVelocity;
 
-        amountToMove.y += yVelocity;
+        if (!isDashing)
+        {
+            amountToMove.y += yVelocity;
 
+            
+        }
         amountToMove *= Time.deltaTime;
-
         // This will move the player according to the forward vector and the yVelocity using the
         // CharacterController.
         cc.Move(amountToMove);
@@ -156,6 +200,7 @@ public class Platformer : MonoBehaviour
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(-amountToMove.normalized), 0.07f);
         }
+        Debug.Log(isDashing);
 
     }
 }
