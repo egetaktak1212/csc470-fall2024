@@ -37,7 +37,7 @@ public class Platformer : MonoBehaviour
     float maxJumpTime = .75f;
     float maxJumpHeight = 4.0f;
     bool calcFallTime = false;
-
+    float otherfalltime = 0f;
     bool isDashing = false;
 
 
@@ -52,6 +52,7 @@ public class Platformer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //Application.targetFrameRate = 15;
         Cursor.lockState = CursorLockMode.Locked;
         float hAxis = Input.GetAxis("Horizontal");
         float vAxis = Input.GetAxis("Vertical");
@@ -84,9 +85,11 @@ public class Platformer : MonoBehaviour
         if (!cc.isGrounded)
         {
             // *** If we are in here, we are IN THE AIR ***
+            otherfalltime += Time.deltaTime;
+            if (otherfalltime < .25f && !isDashing && (Input.GetKeyDown(KeyCode.Space))) {
+                yVelocity = jumpVelocity;
+            }
 
-
-            // Let the player jump if they have only been falling for a little bit
             if (Input.GetKeyDown(KeyCode.Space) && yVelocity < 0.0f && !isDashing)
             {
 
@@ -128,6 +131,7 @@ public class Platformer : MonoBehaviour
         }
         else
         {
+            otherfalltime = 0f;
             dashCount = 0;
             yVelocity = -2;
 
@@ -198,7 +202,7 @@ public class Platformer : MonoBehaviour
         amountToMove.y = 0;
         if (amountToMove != Vector3.zero)
         {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(-amountToMove.normalized), 0.07f);
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(-amountToMove.normalized), 5f * Time.deltaTime);
         }
         Debug.Log(isDashing);
 
