@@ -21,11 +21,13 @@ public class plane_script : MonoBehaviour
 
     static int score = 0;
 
+    float variable = 0;
+
     float xRotationSpeed = 120f;
     float zRotationSpeed = 120f;
     float yRotationSpeed = 100f;
     float forwardSpeedMult;
-    static float forwardSpeed = 20f;
+    static float forwardSpeed = 60f;
     static bool boost = false;
     static float boostTimer = 0;
     float Timer = 0;
@@ -67,7 +69,7 @@ public class plane_script : MonoBehaviour
         boost = false;
         booster = 1;
         score = 0;
-        forwardSpeed = 20;
+        forwardSpeed = 60;
 
     }
 
@@ -80,11 +82,18 @@ public class plane_script : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //speed decreases gradually (this was a requirement, please see it, i only did it for the requirement)
-        if (forwardSpeed > 0)
-        {
-            forwardSpeed -= 1f * Time.deltaTime;
+
+        if (Input.GetKeyDown(KeyCode.P)) {
+            valueChanger();
         }
+
+        Debug.Log(variable);
+
+        //speed decreases gradually (this was a requirement, please see it, i only did it for the requirement)
+        //if (forwardSpeed > 0)
+        //{
+        //    forwardSpeed -= 1f * Time.deltaTime;
+        //}
         juiceMeter.text = "JUICE METER: " + score;
 
         if (Input.GetKey(KeyCode.R))
@@ -460,7 +469,7 @@ public class plane_script : MonoBehaviour
 
         Timer += Time.deltaTime;
         //Debug.Log(wingSpeedA + "    " + wingSpeedD + "     "+ Rotation + "         " + turnAmount);
-        Debug.Log(forwardSpeed);
+        //Debug.Log(forwardSpeed);
 
     }
 
@@ -485,8 +494,13 @@ public class plane_script : MonoBehaviour
         {
             Destroy(other.gameObject);
             score++;
-            forwardSpeed = 20;
+            //forwardSpeed = 20;
 
+        }
+        if (other.CompareTag("Terrain"))
+        {
+            //Debug.Log("collided");
+            SceneManager.LoadScene("SampleScene");
         }
 
 
@@ -497,12 +511,14 @@ public class plane_script : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Terrain"))
         {
-            Debug.Log("collided");
+            //Debug.Log("collided");
             SceneManager.LoadScene("SampleScene");
         }
     }
 
-
+    public void valueChanger() {
+        variable = 2;
+    }
 
 
 }
