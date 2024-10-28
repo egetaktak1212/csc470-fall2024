@@ -1,13 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 using UnityEngine.EventSystems;
+
 
 public class Platformer : MonoBehaviour
 {
     public CharacterController cc;
     public Transform cameraTransform;
+    public GameObject platform;
+    public Animator animator;
 
 
     float rotateSpeed = 90;
@@ -39,6 +43,10 @@ public class Platformer : MonoBehaviour
     bool calcFallTime = false;
     float otherfalltime = 0f;
     bool isDashing = false;
+    bool standingOnMoving = false;
+    VelocityCalculator thing;
+
+    bool jumpPad = false;
 
 
     // Start is called before the first frame update
@@ -80,10 +88,14 @@ public class Platformer : MonoBehaviour
         // Slow the dash down, and keep it from going below zero (using clamp)
         dashTimer -= Time.deltaTime;
         dashTimer = Mathf.Clamp(dashTimer, 0, 10000);
-
+        
+        
 
         if (!cc.isGrounded)
         {
+
+
+
             // *** If we are in here, we are IN THE AIR ***
             otherfalltime += Time.deltaTime;
             if (otherfalltime < .25f && !isDashing && (Input.GetKeyDown(KeyCode.Space))) {
@@ -162,6 +174,12 @@ public class Platformer : MonoBehaviour
             }
         }
 
+        if (jumpPad)
+        {
+            yVelocity = jumpVelocity * 2;
+            jumpPad = false;
+        }
+
         // --- TRANSLATION ---
         // Move the player forward based on the vAxis value
         // Note, If the player isn't pressing up or down, vAxis will be 0 and there will be no movement
@@ -198,13 +216,52 @@ public class Platformer : MonoBehaviour
         amountToMove *= Time.deltaTime;
         // This will move the player according to the forward vector and the yVelocity using the
         // CharacterController.
-        cc.Move(amountToMove);
-        amountToMove.y = 0;
-        if (amountToMove != Vector3.zero)
+
+        Vector3 rotate = amountToMove;
+        rotate.y = 0;
+
+        if (standingOnMoving)
         {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(-amountToMove.normalized), 5f * Time.deltaTime);
+
+            amountToMove += thing.GetVelocity() * Time.deltaTime;
+
         }
-        Debug.Log(isDashing);
+
+        cc.Move(amountToMove);
+
+        if (rotate != Vector3.zero)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(-rotate.normalized), 5f * Time.deltaTime);
+        }
+
+        animator.SetBool("isRunning", hAxis != 0 || vAxis != 0);
+        animator.SetBool("isIdle", hAxis == 0 && vAxis == 0);
 
     }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("MovingPlatform")) {
+            Debug.Log("jumped");
+            platform = other.gameObject;
+            standingOnMoving = true;
+            thing = platform.GetComponent<VelocityCalculator>();
+            
+        }
+        if (other.CompareTag("JumpPlatform")) {
+           
+            jumpPad = true;
+        }
+
+
+    }
+
+    private void OnTriggerExit(Collider other) {
+        if (other.CompareTag("MovingPlatform"))
+        {
+            platform = null;
+            standingOnMoving = false;
+        }
+    }
+
 }
