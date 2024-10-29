@@ -25,7 +25,7 @@ public class Platformer : MonoBehaviour
     float gravity;
 
     // These will be used to create a "dash"
-    float dashAmount = 16;
+    float dashAmount = 32;
     float dashVelocity = 0;
     float friction = -2.8f;
     float dashTimer = 0;
@@ -38,8 +38,8 @@ public class Platformer : MonoBehaviour
     float fallingTime = 0;
     float coyoteTime = 0.5f;
 
-    float maxJumpTime = .75f;
-    float maxJumpHeight = 4.0f;
+    float maxJumpTime = .90f;
+    float maxJumpHeight = 6.0f;
     bool calcFallTime = false;
     float otherfalltime = 0f;
     bool isDashing = false;
@@ -47,6 +47,7 @@ public class Platformer : MonoBehaviour
     VelocityCalculator thing;
 
     bool jumpPad = false;
+    int jumpCount = 0;
 
 
     // Start is called before the first frame update
@@ -70,7 +71,7 @@ public class Platformer : MonoBehaviour
         // NOTE: If the player isn't pressing left or right, hAxis will be 0 and there will be no rotation
         //transform.Rotate(0, rotateSpeed * hAxis * Time.deltaTime, 0);
 
-        if (dashTimer == 0)
+        if (dashTimer == 0 || (isDashing && Input.GetKeyUp(KeyCode.LeftShift)))
         {
             isDashing = false;
             dashVelocity = 0;
@@ -93,7 +94,11 @@ public class Platformer : MonoBehaviour
 
         if (!cc.isGrounded)
         {
-
+            if (!isDashing && Input.GetKeyDown(KeyCode.Space) && jumpCount == 0) { 
+                yVelocity = jumpVelocity;
+                jumpCount++;
+                animator.SetTrigger("Backflip");
+            }
 
 
             // *** If we are in here, we are IN THE AIR ***
@@ -137,7 +142,7 @@ public class Platformer : MonoBehaviour
                     yVelocity += gravity * 2.0f * Time.deltaTime;
                 }
 
-                if (Input.GetKeyUp(KeyCode.Space)) { yVelocity = 0.0f; }
+                if (Input.GetKeyUp(KeyCode.Space) && yVelocity > 0) { yVelocity = 0.0f; }
 
             }
         }
@@ -146,6 +151,7 @@ public class Platformer : MonoBehaviour
             otherfalltime = 0f;
             dashCount = 0;
             yVelocity = -2;
+            jumpCount = 0;
 
 
 
@@ -227,6 +233,12 @@ public class Platformer : MonoBehaviour
 
         }
 
+        animator.SetBool("IsRunning", hAxis != 0 || vAxis != 0);
+        animator.SetBool("IsIdle", hAxis == 0 && vAxis == 0);
+        bool a = animator.GetBool("IsIdle");
+        bool b = animator.GetBool("IsRunning");
+        Debug.Log(b + " " + a);
+
         cc.Move(amountToMove);
 
         if (rotate != Vector3.zero)
@@ -234,8 +246,7 @@ public class Platformer : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(-rotate.normalized), 5f * Time.deltaTime);
         }
 
-        animator.SetBool("isRunning", hAxis != 0 || vAxis != 0);
-        animator.SetBool("isIdle", hAxis == 0 && vAxis == 0);
+
 
     }
 
