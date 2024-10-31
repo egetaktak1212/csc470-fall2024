@@ -94,7 +94,8 @@ public class Platformer : MonoBehaviour
 
         if (!cc.isGrounded)
         {
-            if (!isDashing && Input.GetKeyDown(KeyCode.Space) && jumpCount == 0) { 
+            otherfalltime += Time.deltaTime;
+            if (!isDashing && Input.GetKeyDown(KeyCode.Space) && jumpCount == 0 && otherfalltime > .25f) { 
                 yVelocity = jumpVelocity;
                 jumpCount++;
                 animator.SetTrigger("Backflip");
@@ -102,7 +103,7 @@ public class Platformer : MonoBehaviour
 
 
             // *** If we are in here, we are IN THE AIR ***
-            otherfalltime += Time.deltaTime;
+            
             if (otherfalltime < .25f && !isDashing && (Input.GetKeyDown(KeyCode.Space))) {
                 yVelocity = jumpVelocity;
             }
