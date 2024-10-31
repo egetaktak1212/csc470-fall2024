@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using TMPro;
+using Unity.VisualScripting;
 using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -12,6 +14,9 @@ public class Platformer : MonoBehaviour
     public Transform cameraTransform;
     public GameObject platform;
     public Animator animator;
+    public GameObject respawnObj;
+    public TMP_Text youwin;
+
 
 
     float rotateSpeed = 90;
@@ -20,11 +25,11 @@ public class Platformer : MonoBehaviour
 
 
 
-    // These will be used to simulate gravity, and for jumping
+
     float yVelocity = 0;
     float gravity;
 
-    // These will be used to create a "dash"
+
     float dashAmount = 32;
     float dashVelocity = 0;
     float friction = -2.8f;
@@ -32,10 +37,10 @@ public class Platformer : MonoBehaviour
     float dashLength = .2f;
     int dashCount = 0;  
 
-    // This will keep track of how long we have been falling, we will use this 
-    // for "coyote time" (keeping track of how long it has been since we have
-    // started falling), and letting the player jump for a certain amount of time.
+    //if you press jump before u land, it'll make u jump when u touch ground
     float fallingTime = 0;
+
+    //coyote
     float coyoteTime = 0.5f;
 
     float maxJumpTime = .90f;
@@ -49,10 +54,15 @@ public class Platformer : MonoBehaviour
     bool jumpPad = false;
     int jumpCount = 0;
 
+    bool dead = false;
+
+    Vector3 prevPlat;
+
 
     // Start is called before the first frame update
     void Start()
     {
+        youwin.enabled = false;
         float timeToApex = maxJumpTime / 2;
         gravity = (-2 * maxJumpHeight) / Mathf.Pow(timeToApex, 2);
         jumpVelocity = (2 * maxJumpHeight) / timeToApex;
@@ -65,11 +75,6 @@ public class Platformer : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         float hAxis = Input.GetAxis("Horizontal");
         float vAxis = Input.GetAxis("Vertical");
-
-        // --- ROTATION ---
-        // Rotate on the y axis based on the hAxis value
-        // NOTE: If the player isn't pressing left or right, hAxis will be 0 and there will be no rotation
-        //transform.Rotate(0, rotateSpeed * hAxis * Time.deltaTime, 0);
 
         if (dashTimer == 0 || (isDashing && Input.GetKeyUp(KeyCode.LeftShift)))
         {
@@ -86,7 +91,7 @@ public class Platformer : MonoBehaviour
             dashCount = 1;
             
         }
-        // Slow the dash down, and keep it from going below zero (using clamp)
+        //dash isnt friction based (yuck!)
         dashTimer -= Time.deltaTime;
         dashTimer = Mathf.Clamp(dashTimer, 0, 10000);
         
@@ -94,6 +99,8 @@ public class Platformer : MonoBehaviour
 
         if (!cc.isGrounded)
         {
+            // *** If we are in here, we are IN THE AIR ***
+
             otherfalltime += Time.deltaTime;
             if (!isDashing && Input.GetKeyDown(KeyCode.Space) && jumpCount == 0 && otherfalltime > .25f) { 
                 yVelocity = jumpVelocity;
@@ -102,7 +109,6 @@ public class Platformer : MonoBehaviour
             }
 
 
-            // *** If we are in here, we are IN THE AIR ***
             
             if (otherfalltime < .25f && !isDashing && (Input.GetKeyDown(KeyCode.Space))) {
                 yVelocity = jumpVelocity;
@@ -121,17 +127,7 @@ public class Platformer : MonoBehaviour
 
             }
 
-            // If we go in this block of code, cc.isGrounded is false, which means
-            // the last time cc.Move was called, we did not try to enter the ground.
-
-            // If the player releases space and the player is moving upwards, stop upward velocity
-            // so that the player begins to fall.
-            //if (yVelocity > 0 && Input.GetKeyUp(KeyCode.Space))
-            //{
-            //    yVelocity = 0;
-            //}
-
-            // Apply gravity to the yVelocity
+            
             if (!isDashing)
             {
                 if (yVelocity > 0.0f)
@@ -227,18 +223,31 @@ public class Platformer : MonoBehaviour
         Vector3 rotate = amountToMove;
         rotate.y = 0;
 
-        if (standingOnMoving)
-        {
 
-            amountToMove += thing.GetVelocity() * Time.deltaTime;
+        ////UNCOMMENT IF GIVE UP ON VELCITY
+        //if (standingOnMoving)
+        //{
 
-        }
+        //    amountToMove += thing.GetVelocity() * Time.deltaTime;
+
+        //}
 
         animator.SetBool("IsRunning", hAxis != 0 || vAxis != 0);
         animator.SetBool("IsIdle", hAxis == 0 && vAxis == 0);
         bool a = animator.GetBool("IsIdle");
         bool b = animator.GetBool("IsRunning");
-        Debug.Log(b + " " + a);
+
+
+
+        if (platform != null)
+        {
+            Vector3 amountPlatformMoved = platform.transform.position - prevPlat;
+            amountToMove += amountPlatformMoved;
+            prevPlat = platform.transform.position;
+        }
+
+
+
 
         cc.Move(amountToMove);
 
@@ -246,7 +255,13 @@ public class Platformer : MonoBehaviour
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(-rotate.normalized), 5f * Time.deltaTime);
         }
-
+        if (dead)
+        {
+            cc.enabled = false;
+            transform.position = respawnObj.transform.position;
+            dead = false;
+            cc.enabled = true; 
+        }
 
 
     }
@@ -254,15 +269,31 @@ public class Platformer : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("MovingPlatform")) {
-            Debug.Log("jumped");
+            //platform = other.gameObject;
+            //standingOnMoving = true;
+            //thing = platform.GetComponent<VelocityCalculator>();
+
             platform = other.gameObject;
-            standingOnMoving = true;
-            thing = platform.GetComponent<VelocityCalculator>();
+            prevPlat = platform.transform.position;
+
             
         }
         if (other.CompareTag("JumpPlatform")) {
            
             jumpPad = true;
+        }
+
+        if (other.CompareTag("Respawn")) {
+            dead = true;
+        
+        }
+
+        if (other.CompareTag("Win"))
+        {
+            Debug.Log("win");
+            youwin.enabled = true;
+
+
         }
 
 
