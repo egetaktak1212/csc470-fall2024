@@ -143,11 +143,15 @@ public class Platformer : MonoBehaviour
 
             }
         }
-        else
+        else if (cc.isGrounded || standingOnMoving) 
         {
             otherfalltime = 0f;
             dashCount = 0;
-            yVelocity = -2;
+
+            if (!standingOnMoving)
+            {
+                yVelocity = -2;
+            }
             jumpCount = 0;
 
 
@@ -270,7 +274,7 @@ public class Platformer : MonoBehaviour
     {
         if (other.CompareTag("MovingPlatform")) {
             //platform = other.gameObject;
-            //standingOnMoving = true;
+            standingOnMoving = true;
             //thing = platform.GetComponent<VelocityCalculator>();
 
             platform = other.gameObject;
