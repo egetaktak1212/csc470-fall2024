@@ -6,6 +6,8 @@ TagManager:
   tags:
   - unit
   - ground
+  - enemy
+  - enemyRadius
   layers:
   - Default
   - TransparentFX
@@ -15,7 +17,7 @@ TagManager:
   - UI
   - ground
   - unit
-  - 
+  - enemy
   - 
   - 
   - 
