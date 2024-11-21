@@ -43,8 +43,6 @@ public class EnemyScript : MonoBehaviour
 
     void OnEnable()
     {
-        gameObject.transform.GetChild(0).gameObject.gameObject.GetComponent<Outline>().enabled = false;
-        Debug.Log(gameObject.transform.GetChild(0));
     }
 
     void OnDisable()
@@ -64,7 +62,8 @@ public class EnemyScript : MonoBehaviour
         transform.Rotate(0, Random.Range(0, 360), 0);
 
         layerMask = LayerMask.GetMask("ground", "unit");
-
+        
+        gameObject.transform.GetChild(0).gameObject.gameObject.GetComponent<Outline>().enabled = false;
 
 
 
