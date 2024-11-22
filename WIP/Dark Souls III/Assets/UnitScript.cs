@@ -39,9 +39,9 @@ public class UnitScript : MonoBehaviour
 
     public bool selected = false;
 
-    Dictionary<string, bool> options = new Dictionary<string, bool>
+    public Dictionary<string, bool> options = new Dictionary<string, bool>
     {
-        {"move", true}, 
+        {"move", false}, 
         {"shoot", false}
     };
 
@@ -56,6 +56,9 @@ public class UnitScript : MonoBehaviour
             bodyRenderer.material.color = normalColor;
         GameManager.SpacebarPressed += ChangeToRandomColor;
         GameManager.UnitClicked += GameManagerSaysUnitWasClicked;
+        
+
+
     }
 
     void OnDisable()
@@ -82,11 +85,14 @@ public class UnitScript : MonoBehaviour
         }
         else
         {
-            selected = false;
             //delete the line cuz it'll just stay when u switch
             lineRenderer.positionCount = 0;
+            selected = false;
+            
             bodyRenderer.material.color = normalColor;
+
         }
+        gameObject.transform.GetChild(2).gameObject.SetActive(selected);
     }
 
 
@@ -124,7 +130,9 @@ public class UnitScript : MonoBehaviour
     {
         if (selected)
         {
-
+            if (!options["move"])
+                //delete the line cuz it'll just stay when u switch
+                lineRenderer.positionCount = 0;
 
 
 
@@ -146,7 +154,6 @@ public class UnitScript : MonoBehaviour
                         outline = hitInfo.collider.gameObject.transform.GetChild(0).gameObject.GetComponent<Outline>();
                     }
                     if (!hitInfo.collider.CompareTag("enemy") && (target == null || target != hitInfo.collider)) {
-                        Debug.Log("target != hitInfo.collider: " + (target != hitInfo.collider));
                         if (outline != null)
                             outline.enabled = false;
                     }
@@ -178,7 +185,6 @@ public class UnitScript : MonoBehaviour
             DrawPath();
         }
 
-        Debug.Log(target);
         
 
 
