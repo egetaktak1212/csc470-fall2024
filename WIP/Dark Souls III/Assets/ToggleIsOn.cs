@@ -10,6 +10,8 @@ public class Example : MonoBehaviour
     UnityEngine.UI.Toggle m_Toggle;
     public Text m_Text;
     GameObject main;
+    public string option;
+
 
     void Start()
     {
@@ -22,16 +24,33 @@ public class Example : MonoBehaviour
         main = gameObject.transform.parent.gameObject.transform.parent.gameObject;
     }
 
-    private void Update()
+    private void OnDisable()
     {
-        Debug.Log(m_Toggle.isOn);
-        Debug.Log(main);
+       DeSelected();
     }
 
-    
+
+
+    private void Update()
+    {
+        //Debug.Log(m_Toggle.isOn);
+        //Debug.Log(main);
+    }
+
+    public void Selected() {
+        Debug.Log("selected");
+        main.GetComponent<UnitScript>().options[option] = true;
+    }
+
+    public void DeSelected()
+    {
+        Debug.Log("deselected");
+        main.GetComponent<UnitScript>().options[option] = false;
+
+    }
 
     void ToggleValueChanged()
     {
-        main.GetComponent<UnitScript>().options["move"] = m_Toggle.isOn;
+        //main.GetComponent<UnitScript>().options["move"] = m_Toggle.isOn;
     }
 }

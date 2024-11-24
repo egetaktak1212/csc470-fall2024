@@ -11,13 +11,17 @@ using UnityEngine.EventSystems;
 using static UnityEngine.GraphicsBuffer;
 using static UnityEngine.UI.CanvasScaler;
 using Random = UnityEngine.Random;
-
+using TMPro;
 
 public class UnitScript : MonoBehaviour
 {
     public Outline outline;
     public static Action<EnemyScript> Highlight;
     public static Action<EnemyScript> UnHighlight;
+
+    public GameObject uifollower;
+    public GameObject uifollowtext;
+    public GameObject ui;
 
     public Camera mainCamera;
     public string unitName;
@@ -44,36 +48,69 @@ public class UnitScript : MonoBehaviour
         {"move", false}, 
         {"shoot", false}
     };
+    //RESET THIS EVERY TURN
+    int moveDistance = 15;
+    int distanceMoved = 0;
 
 
     float rotateSpeed;
 
     LayerMask layerMask;
 
+
+    /*
+    TO DO LIST:
+
+    NEW BUG:
+    When enemy is selected (mouse hovered over it), the outline appears but doesnt go away :)
+
+    RESET ACTION POINTS EVERY TURN 50%
+    CANNOT SKIP TURN DURING ENEMY TURN
+    LIMITED TURNS?
+    TURN HUD AT THE TOP SHOWING WHO"S TURN IT BE
+
+    CONTROLS POPUP
+
+    HEALTHBARS
+    SHOOTING
+    ATTACKING
+    ENEMY AI
+
+    GAMEMANAGER LINE 82, "CANWE", ARE WE ALLOWED TO GO NEXT TURN RN?
+
+
+    */
+
     void OnEnable()
     {
         if (!selected)
             bodyRenderer.material.color = normalColor;
-        GameManager.SpacebarPressed += ChangeToRandomColor;
         GameManager.UnitClicked += GameManagerSaysUnitWasClicked;
-        
-
-
+        GameManager.playerTurn += playerTurn;
+        GameManager.enemyTurn += enemyTurn;
     }
 
     void OnDisable()
     {
-        GameManager.SpacebarPressed -= ChangeToRandomColor;
         GameManager.UnitClicked -= GameManagerSaysUnitWasClicked;
+        GameManager.playerTurn -= playerTurn;
+        GameManager.enemyTurn -= enemyTurn;
     }
 
+    void playerTurn() { 
+    //START OF OUR TURN BABY
+    //RESET DISTANCE WE CAN WALK, ACTION POINTS, WHATEVER
+        distanceMoved = 0;
+        //actionPoints = 0;
+        //yurp
 
-
-
-    void ChangeToRandomColor()
-    {
-        bodyRenderer.material.color = new Color(Random.value, Random.value, Random.value);
     }
+
+    void enemyTurn() {
+        //do all "not selected" actions
+        GameManagerSaysUnitWasClicked(null);
+    }
+
 
     void GameManagerSaysUnitWasClicked(UnitScript unit)
     {
@@ -131,9 +168,12 @@ public class UnitScript : MonoBehaviour
         if (selected)
         {
             if (!options["move"])
+            {
                 //delete the line cuz it'll just stay when u switch
                 lineRenderer.positionCount = 0;
 
+                uifollower.gameObject.SetActive(false);
+            }
 
 
 
@@ -146,8 +186,22 @@ public class UnitScript : MonoBehaviour
                 {
                     if (hitInfo.collider.CompareTag("ground")) {
                         NavMesh.CalculatePath(transform.position, hitInfo.point, NavMesh.AllAreas, path);
+                        uifollower.gameObject.SetActive(true);
                         DrawPrePath();
-                        
+                        uifollowtext.GetComponent<TextMeshProUGUI>().text = ((int) GetPathLength(path)).ToString();
+                        //Debug.Log("prepath length: " + GetPathLength(path) + " distance traveled: " + distanceMoved);
+
+                        //if we can't move, let the ui element know
+                        int pathdist = (int)GetPathLength(path);
+                        if (pathdist <= moveDistance - distanceMoved && pathdist != 0)
+                        {
+                            uifollowtext.GetComponent<TextMeshProUGUI>().color = Color.black;
+                        } else {
+                            uifollowtext.GetComponent<TextMeshProUGUI>().color = Color.red;
+                        }
+
+
+
                     }
                     if (hitInfo.collider.CompareTag("enemy")) {
                         hitInfo.collider.gameObject.transform.GetChild(0).gameObject.GetComponent<Outline>().enabled = true;
@@ -185,6 +239,7 @@ public class UnitScript : MonoBehaviour
             DrawPath();
         }
 
+        Debug.Log(moveDistance - distanceMoved);
         
 
 
@@ -200,8 +255,16 @@ public class UnitScript : MonoBehaviour
                 //clicked on ground after selecting unit
                 if (options["move"])
                 {
-                    nma.SetDestination(hitInfo.point);
-
+                    NavMesh.CalculatePath(transform.position, hitInfo.point, NavMesh.AllAreas, path);
+                    int pathdist = (int) GetPathLength(path);
+                    if (pathdist <= moveDistance - distanceMoved && pathdist != 0)
+                    {
+                        nma.SetDestination(hitInfo.point);
+                        distanceMoved += pathdist;
+                    }
+                    else { 
+                    //we couldn't move bc too far
+                    }
                 }
 
 
@@ -212,8 +275,8 @@ public class UnitScript : MonoBehaviour
             {
 
                 //clicked on an enemy after selecting unit
-                if (!options["shoot"]) {
-                    nma.SetDestination(hitInfo.point);
+                if (options["attack"]) {
+                    //attack
                     
                 
                 }
