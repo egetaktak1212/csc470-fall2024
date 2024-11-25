@@ -24,14 +24,25 @@ public class GameManager : MonoBehaviour
 
     public UnitScript selectedUnit;
 
-    public List<UnitScript> units = new List<UnitScript>();
+    public GameObject enemyTurnBox;
+    public GameObject playerTurnBox;
+    Color themsTurn = new Color(0.882f, 1, 0.847f, 1);
 
     //false is enemy turn, true is player turn
-
     bool turn = true;
 
 
+    bool enemiesTurnInProgress = false;
 
+
+    private List<EnemyScript> activeEnemies = new List<EnemyScript>();
+
+    private List<EnemyScript> aliveEnemies = new List<EnemyScript>();
+
+
+    private List<UnitScript> activePlayers = new List<UnitScript>();
+
+    public GameObject nextTurnButton;
 
 
     LayerMask layerMask;
@@ -52,6 +63,11 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         layerMask = LayerMask.GetMask("ground", "unit");
+
+        playerTurnBox.GetComponent<Image>().color = themsTurn;
+
+        //makes a list of units, so we can check if people are dying man
+        activePlayers.AddRange(FindObjectsOfType<UnitScript>());
     }
 
 
@@ -78,27 +94,75 @@ public class GameManager : MonoBehaviour
     }
 
     //when next turn is pressed, this goes off
-    public void nextTurn() {
-        //FIX THIS
-        bool canWe = true;
-
+    public void nextTurn()
+    {
         //if we are allowed to go to the next turn, flip who's turn it is, and evoke the appropriate stuffs
-        if (canWe) {
+        if (!enemiesTurnInProgress)
+        {
             turn = !turn;
+
             if (turn)
             {
-                playerTurn?.Invoke();
+                playerTurnBox.GetComponent<Image>().color = themsTurn;
+                enemyTurnBox.GetComponent<Image>().color = Color.white;
+                playerTurn?.Invoke(); 
             }
-            else { 
-                enemyTurn?.Invoke();
+            else
+            {
+                playerTurnBox.GetComponent<Image>().color = Color.white;
+                enemyTurnBox.GetComponent<Image>().color = themsTurn;
+                enemiesTurnInProgress = true;
+                StartEnemyTurn();
+                enemyTurn?.Invoke();  
             }
-
         }
-
-    
-    
     }
 
+    public void EndEnemiesTurn(EnemyScript enemy)
+    {
+        if (activeEnemies.Contains(enemy))
+        {
+            activeEnemies.Remove(enemy);
+        }
+        if (activeEnemies.Count == 0)
+        {
+            enemiesTurnInProgress = false;
+            nextTurnButton.SetActive(true);
+            activeEnemies.Clear();
+            nextTurn();
+        }
+    }
+
+    public void EndPlayerLife(UnitScript player)
+    {
+        Debug.Log("were here");
+        if (activePlayers.Contains(player))
+        {
+            activePlayers.Remove(player);
+        }
+        if (activePlayers.Count == 0)
+        {
+            //all players are dead
+            Debug.Log("GAME OVER!");
+        }
+    }
+    public void EndEnemyLife(EnemyScript enemy)
+    {
+        if (aliveEnemies.Contains(enemy))
+        {
+            aliveEnemies.Remove(enemy);
+        }
+        if (aliveEnemies.Count == 0)
+        {
+            Debug.Log("WE WIN!!");
+        }
+    }
+
+    public void StartEnemyTurn()
+    {
+        nextTurnButton.SetActive(false);
+        activeEnemies.AddRange(FindObjectsOfType<EnemyScript>());
+    }
 
     public void SelectUnit(UnitScript unit)
     {

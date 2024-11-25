@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using cakeslice;
 using Unity.VisualScripting;
-using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.EventSystems;
@@ -12,16 +11,25 @@ using static UnityEngine.GraphicsBuffer;
 using static UnityEngine.UI.CanvasScaler;
 using Random = UnityEngine.Random;
 using TMPro;
+using System.Linq;
 
 public class UnitScript : MonoBehaviour
 {
     public Outline outline;
     public static Action<EnemyScript> Highlight;
     public static Action<EnemyScript> UnHighlight;
+    public static UnitScript selectedUnit;
+
 
     public GameObject uifollower;
     public GameObject uifollowtext;
     public GameObject ui;
+
+    public HealthBarScript healthbar;
+
+    public GameObject moveLeft;
+    public GameObject apLeft;
+
 
     public Camera mainCamera;
     public string unitName;
@@ -35,6 +43,10 @@ public class UnitScript : MonoBehaviour
     public Color selectedColor;
     private NavMeshPath path;
 
+    public int maxHealth = 100;
+    public int currentHealth;
+
+
     private LineRenderer lineRenderer;
 
     Collider target;
@@ -45,33 +57,38 @@ public class UnitScript : MonoBehaviour
 
     public Dictionary<string, bool> options = new Dictionary<string, bool>
     {
-        {"move", false}, 
-        {"shoot", false}
+        {"move", false},
+        {"attack", false}
     };
     //RESET THIS EVERY TURN
     int moveDistance = 15;
     int distanceMoved = 0;
+
+    List<GameObject> attackableFoes = new List<GameObject>();
+
+    int actionPoints = 1;
 
 
     float rotateSpeed;
 
     LayerMask layerMask;
 
+    private GameManager gameManager;
+
+
 
     /*
     TO DO LIST:
 
     NEW BUG:
-    When enemy is selected (mouse hovered over it), the outline appears but doesnt go away :)
 
-    RESET ACTION POINTS EVERY TURN 50%
+
     CANNOT SKIP TURN DURING ENEMY TURN
     LIMITED TURNS?
     TURN HUD AT THE TOP SHOWING WHO"S TURN IT BE
 
     CONTROLS POPUP
 
-    HEALTHBARS
     SHOOTING
     ATTACKING
     ENEMY AI
@@ -97,16 +114,18 @@ public class UnitScript : MonoBehaviour
         GameManager.enemyTurn -= enemyTurn;
     }
 
-    void playerTurn() { 
-    //START OF OUR TURN BABY
-    //RESET DISTANCE WE CAN WALK, ACTION POINTS, WHATEVER
+    void playerTurn()
+    {
+        //START OF OUR TURN BABY
+        //RESET DISTANCE WE CAN WALK, ACTION POINTS, WHATEVER
         distanceMoved = 0;
-        //actionPoints = 0;
+        actionPoints = 1;
         //yurp
 
     }
 
-    void enemyTurn() {
+    void enemyTurn()
+    {
         //do all "not selected" actions
         GameManagerSaysUnitWasClicked(null);
     }
@@ -118,6 +137,7 @@ public class UnitScript : MonoBehaviour
         {
             selected = true;
             bodyRenderer.material.color = selectedColor;
+            selectedUnit = this;
 
         }
         else
@@ -125,7 +145,7 @@ public class UnitScript : MonoBehaviour
             //delete the line cuz it'll just stay when u switch
             lineRenderer.positionCount = 0;
             selected = false;
-            
+
             bodyRenderer.material.color = normalColor;
 
         }
@@ -137,7 +157,7 @@ public class UnitScript : MonoBehaviour
     void Start()
     {
         path = new NavMeshPath();
-        layerMask = LayerMask.GetMask("wall");
+
         rotateSpeed = Random.Range(20, 60);
 
         transform.Rotate(0, Random.Range(0, 360), 0);
@@ -150,15 +170,14 @@ public class UnitScript : MonoBehaviour
         lineRenderer.endWidth = 0.15f;
         lineRenderer.positionCount = 0;
 
-
+        currentHealth = maxHealth;
+        healthbar.SetMaxHealth(currentHealth);
+        gameManager = GameManager.instance;
 
 
     }
 
-    void OnDestroy()
-    {
-        GameManager.instance.units.Remove(this);
-    }
+
 
 
 
@@ -167,6 +186,10 @@ public class UnitScript : MonoBehaviour
     {
         if (selected)
         {
+            if (Input.GetKeyDown(KeyCode.Space))
+                TakeDamage(20);
+
+
             if (!options["move"])
             {
                 //delete the line cuz it'll just stay when u switch
@@ -184,11 +207,12 @@ public class UnitScript : MonoBehaviour
                 RaycastHit hitInfo;
                 if (Physics.Raycast(mousePositionRay, out hitInfo, Mathf.Infinity, layerMask))
                 {
-                    if (hitInfo.collider.CompareTag("ground")) {
+                    if (hitInfo.collider.CompareTag("ground"))
+                    {
                         NavMesh.CalculatePath(transform.position, hitInfo.point, NavMesh.AllAreas, path);
                         uifollower.gameObject.SetActive(true);
                         DrawPrePath();
-                        uifollowtext.GetComponent<TextMeshProUGUI>().text = ((int) GetPathLength(path)).ToString();
+                        uifollowtext.GetComponent<TextMeshProUGUI>().text = ((int)GetPathLength(path)).ToString();
                         //Debug.Log("prepath length: " + GetPathLength(path) + " distance traveled: " + distanceMoved);
 
                         //if we can't move, let the ui element know
@@ -196,21 +220,26 @@ public class UnitScript : MonoBehaviour
                         if (pathdist <= moveDistance - distanceMoved && pathdist != 0)
                         {
                             uifollowtext.GetComponent<TextMeshProUGUI>().color = Color.black;
-                        } else {
+                        }
+                        else
+                        {
                             uifollowtext.GetComponent<TextMeshProUGUI>().color = Color.red;
                         }
 
 
 
                     }
-                    if (hitInfo.collider.CompareTag("enemy")) {
-                        hitInfo.collider.gameObject.transform.GetChild(0).gameObject.GetComponent<Outline>().enabled = true;
-                        outline = hitInfo.collider.gameObject.transform.GetChild(0).gameObject.GetComponent<Outline>();
-                    }
-                    if (!hitInfo.collider.CompareTag("enemy") && (target == null || target != hitInfo.collider)) {
-                        if (outline != null)
-                            outline.enabled = false;
-                    }
+                    //if (hitInfo.collider.CompareTag("enemy"))
+                    //{
+                    //    hitInfo.collider.gameObject.transform.GetChild(0).gameObject.GetComponent<Outline>().enabled = true;
+                    //    outline = hitInfo.collider.gameObject.transform.GetChild(0).gameObject.GetComponent<Outline>();
+                    //}
+                    //if (!hitInfo.collider.CompareTag("enemy"))
+                    //{
+                    //    Debug.Log("clear");
+                    //    if (outline != null)
+                    //        outline.enabled = false;
+                    //}
                 }
 
             }
@@ -231,6 +260,8 @@ public class UnitScript : MonoBehaviour
                     }
                 }
             }
+            moveLeft.GetComponent<TextMeshProUGUI>().text = $"Move Left: {moveDistance - distanceMoved}/{moveDistance}";
+            apLeft.GetComponent<TextMeshProUGUI>().text = $"Action Points: {actionPoints}";
         }
 
         //if we're moving, draw a path
@@ -239,15 +270,17 @@ public class UnitScript : MonoBehaviour
             DrawPath();
         }
 
-        Debug.Log(moveDistance - distanceMoved);
-        
+
+
+
 
 
     }
 
     //here is where you will do everything. ie, if you're in attack mode, it will see what you should do if you click an enemy, something else, etc.
-    void performAction(RaycastHit hitInfo) {
-        
+    void performAction(RaycastHit hitInfo)
+    {
+
         if (nma.velocity == Vector3.zero)
         {
             if (hitInfo.collider.CompareTag("ground"))
@@ -256,14 +289,15 @@ public class UnitScript : MonoBehaviour
                 if (options["move"])
                 {
                     NavMesh.CalculatePath(transform.position, hitInfo.point, NavMesh.AllAreas, path);
-                    int pathdist = (int) GetPathLength(path);
+                    int pathdist = (int)GetPathLength(path);
                     if (pathdist <= moveDistance - distanceMoved && pathdist != 0)
                     {
                         nma.SetDestination(hitInfo.point);
                         distanceMoved += pathdist;
                     }
-                    else { 
-                    //we couldn't move bc too far
+                    else
+                    {
+                        //we couldn't move bc too far
                     }
                 }
 
@@ -273,12 +307,48 @@ public class UnitScript : MonoBehaviour
 
             if (hitInfo.collider.CompareTag("enemy"))
             {
-
+                if (options["move"])
+                {
+                    NavMesh.CalculatePath(transform.position, hitInfo.point, NavMesh.AllAreas, path);
+                    int pathdist = (int)GetPathLength(path);
+                    if (pathdist <= moveDistance - distanceMoved && pathdist != 0)
+                    {
+                        nma.SetDestination(hitInfo.point);
+                        distanceMoved += pathdist;
+                    }
+                    else
+                    {
+                        //we couldn't move bc too far
+                    }
+                }
                 //clicked on an enemy after selecting unit
-                if (options["attack"]) {
-                    //attack
-                    
-                
+                if (options["attack"])
+                {
+                    if (actionPoints > 0)
+                    {
+                        if (attackableFoes.Contains(hitInfo.collider.gameObject))
+                        {
+                            //if the enemy we clicked on is in range of being attacked
+                            Debug.Log("attack!");
+
+                            Attack(hitInfo.collider.gameObject.GetComponent<EnemyScript>());
+
+
+                            actionPoints--;
+                        }
+                        else
+                        {
+                            Debug.Log("cant attack!" + attackableFoes);
+                            //the enemey is not in range     
+                        }
+                    }
+                    else
+                    {
+                        //we don't have enough action points
+
+                    }
+
+
                 }
             }
 
@@ -363,25 +433,68 @@ public class UnitScript : MonoBehaviour
     }
     private void OnTriggerEnter(Collider other)
     {
-        
 
-        if (other.CompareTag("enemyRadius")) {
+
+        if (other.CompareTag("enemyRadius"))
+        {
             //holy
             Collider parent = other.gameObject.transform.parent.gameObject.GetComponent<Collider>();
-            
-            if (target != null && target == parent) {
-                
+
+            if (target != null && target == parent)
+            {
+
                 //we are in range of the enemy we clicked on
-                if (nma.hasPath) {
+                if (nma.hasPath)
+                {
                     //when i collide with the enemy radius, stop 
                     nma.ResetPath();
-                    //here you would attack
                 }
             }
+            Debug.Log(parent.gameObject.GetComponent<EnemyScript>());
+            if (!attackableFoes.Contains(parent.gameObject))
+            {
+                attackableFoes.Add(parent.gameObject);
+            }
+
+
         }
     }
 
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("enemyRadius"))
+        {
+            Collider parent = other.gameObject.transform.parent.gameObject.GetComponent<Collider>();
 
+            attackableFoes.Remove(parent.gameObject);
+
+
+
+        }
+    }
+
+    public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;
+        healthbar.setHealth(currentHealth);
+
+        //if dead, tell game manager
+        if (currentHealth <= 0)
+        {
+            
+            gameManager.EndPlayerLife(this);
+            Debug.Log("die");
+            Destroy(gameObject);
+        }
+
+
+    }
+
+    void Attack(EnemyScript enemy) {
+        enemy.TakeDamage(20);
+    
+    
+    }
 
 
 

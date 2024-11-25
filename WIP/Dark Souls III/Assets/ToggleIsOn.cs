@@ -38,13 +38,13 @@ public class Example : MonoBehaviour
     }
 
     public void Selected() {
-        Debug.Log("selected");
+
         main.GetComponent<UnitScript>().options[option] = true;
     }
 
     public void DeSelected()
     {
-        Debug.Log("deselected");
+
         main.GetComponent<UnitScript>().options[option] = false;
 
     }
