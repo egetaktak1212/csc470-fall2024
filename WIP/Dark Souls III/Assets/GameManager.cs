@@ -44,6 +44,12 @@ public class GameManager : MonoBehaviour
 
     public GameObject nextTurnButton;
 
+    public GameObject youWin;
+    public GameObject youLose;
+
+
+
+    //private int currentEnemy = 0;
 
     LayerMask layerMask;
 
@@ -68,11 +74,17 @@ public class GameManager : MonoBehaviour
 
         //makes a list of units, so we can check if people are dying man
         activePlayers.AddRange(FindObjectsOfType<UnitScript>());
+        aliveEnemies.AddRange(FindObjectsOfType<EnemyScript>());
+
+        youWin.gameObject.SetActive(false);
+        youLose.gameObject.SetActive(false);
+
     }
 
 
     void Update()
     {
+
 
 
         if (Input.GetMouseButtonDown(0))
@@ -105,7 +117,7 @@ public class GameManager : MonoBehaviour
             {
                 playerTurnBox.GetComponent<Image>().color = themsTurn;
                 enemyTurnBox.GetComponent<Image>().color = Color.white;
-                playerTurn?.Invoke(); 
+                playerTurn?.Invoke();
             }
             else
             {
@@ -113,24 +125,19 @@ public class GameManager : MonoBehaviour
                 enemyTurnBox.GetComponent<Image>().color = themsTurn;
                 enemiesTurnInProgress = true;
                 StartEnemyTurn();
-                enemyTurn?.Invoke();  
+                enemyTurn?.Invoke();
             }
         }
     }
 
-    public void EndEnemiesTurn(EnemyScript enemy)
+    public void EndEnemiesTurn()
     {
-        if (activeEnemies.Contains(enemy))
-        {
-            activeEnemies.Remove(enemy);
-        }
-        if (activeEnemies.Count == 0)
-        {
-            enemiesTurnInProgress = false;
-            nextTurnButton.SetActive(true);
-            activeEnemies.Clear();
-            nextTurn();
-        }
+
+        enemiesTurnInProgress = false;
+        nextTurnButton.SetActive(true);
+        activeEnemies.Clear();
+        nextTurn();
+
     }
 
     public void EndPlayerLife(UnitScript player)
@@ -144,6 +151,9 @@ public class GameManager : MonoBehaviour
         {
             //all players are dead
             Debug.Log("GAME OVER!");
+            GameOver(false);
+
+
         }
     }
     public void EndEnemyLife(EnemyScript enemy)
@@ -155,6 +165,7 @@ public class GameManager : MonoBehaviour
         if (aliveEnemies.Count == 0)
         {
             Debug.Log("WE WIN!!");
+            GameOver(true);
         }
     }
 
@@ -162,7 +173,28 @@ public class GameManager : MonoBehaviour
     {
         nextTurnButton.SetActive(false);
         activeEnemies.AddRange(FindObjectsOfType<EnemyScript>());
+
+        if (activeEnemies.Count > 0)
+        {
+            StartCoroutine(DoEnemyTurn());
+        }
     }
+
+    private IEnumerator DoEnemyTurn()
+    {
+        for (int i = 0; i < activeEnemies.Count; i++)
+        {
+            EnemyScript currentEnemy = activeEnemies[i];
+            currentEnemy.StartTurn();
+            yield return new WaitUntil(() => currentEnemy.finishedTurn); //this line is also from gpt. the cross can wait i gotta finish first
+
+        }
+        EndEnemiesTurn();
+
+    }
+
+
+
 
     public void SelectUnit(UnitScript unit)
     {
@@ -174,4 +206,22 @@ public class GameManager : MonoBehaviour
         selectedUnit = unit;
 
     }
+
+    void GameOver(bool win) {
+        if (win)
+        {
+
+            youWin.gameObject.SetActive(true);
+            Time.timeScale = 0f;
+
+        }
+        else if (!win) {
+
+            youLose.gameObject.SetActive(true);
+            Time.timeScale = 0f;
+        }         
+    
+    }
+
+
 }

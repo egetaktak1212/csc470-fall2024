@@ -13,7 +13,10 @@ using static UnityEngine.UI.CanvasScaler;
 
 public class EnemyScript : MonoBehaviour
 {
+    public bool finishedTurn { get; private set; } = false; //i got this one from gpt, google was not enough. i will lament later
     public Camera mainCamera;
+    public GameObject damageTextPrefab;
+    bool lastRetreat = false;
 
     public NavMeshAgent nma;
 
@@ -33,7 +36,7 @@ public class EnemyScript : MonoBehaviour
 
     LayerMask layerMask;
 
-    public int maxHealth = 100;
+    public int maxHealth = 60;
     public int currentHealth;
     public HealthBarScript healthbar;
 
@@ -61,71 +64,117 @@ public class EnemyScript : MonoBehaviour
 
     void enemyTurn()
     {
-        //ITS OUR TURN BABY NYEH NYEH NYEH
 
-        StartCoroutine(PerformEnemyActions());
+
+        //StartCoroutine(PerformEnemyActions());
     }
+
+    public void StartTurn()
+    {
+
+        //ITS OUR TURN BABY NYEH NYEH NYEH
+        finishedTurn = false;
+        StartCoroutine(PerformEnemyActions());
+
+
+
+    }
+
+
 
 
     //WHERE THE MAGIC HAPPENS BOYS
     private IEnumerator PerformEnemyActions()
     {
-        yield return new WaitForSeconds(2);
+        if (lastRetreat) {
+            lastRetreat = false;
+            finishedTurn = true;
+            yield break;
+        }
 
-        //if we are less than 30 percent health, RUN MAN GET THE HELL OUTTA THERE
+        // If the enemy has less than 30% health, it might retreat
         if (currentHealth < maxHealth * 0.3f)
         {
-            //but we have sm honor about it, so its a 50% chance
             float rand = Random.value;
-            if (rand < 0.5f && !retreated) { 
+            if (rand < 0.5f && !retreated)
+            {
                 RetreatFromFoes();
-                //if we retreat once, we dont again
                 retreated = true;
-                gameManager.EndEnemiesTurn(this);
+                finishedTurn = true;
                 yield break;
             }
         }
 
-        //we will attempt to approach and attack the nearest unit
-        UnitScript nearestPlayer = getNearestPlayer();
-
-        if (nearestPlayer != null)
+        // Attempt to approach and attack the nearest unit
+        if (true /* I made this only to minimize the below*/)
         {
-            float distanceToPlayer = Vector3.Distance(transform.position, nearestPlayer.transform.position);
+            UnitScript nearestPlayer = getNearestPlayer();
 
-
-            float moveDistance = 5f;  
-            float attackRange = 2f;  
-
-            if (distanceToPlayer <= attackRange)
+            if (nearestPlayer != null)
             {
-                //attack here
+                //Debug.Log("A");
+                float distanceToPlayer = Vector3.Distance(transform.position, nearestPlayer.transform.position);
+                float attackRange = 2f;
+                float moveDistance = 5f; // Set maximum move distance
 
-            }
-            else
-            {
-                if (nma != null)
+                if (distanceToPlayer <= attackRange)
                 {
-                    nma.SetDestination(nearestPlayer.transform.position);
-                    while (Vector3.Distance(transform.position, nearestPlayer.transform.position) > attackRange)
+                    //Debug.Log("B");
+                    // If already in attack range, attack the player
+                    Attack(nearestPlayer);
+                    finishedTurn = true;
+                    yield break; // End turn after attacking
+                }
+                else
+                {
+
+                    if (nma != null)
                     {
-                        if (Vector3.Distance(transform.position, nearestPlayer.transform.position) <= moveDistance)
+                        //Debug.Log("C");
+                        nma.isStopped = false;
+                        nma.SetDestination(nearestPlayer.transform.position);
+                        Vector3 start = transform.position;
+
+                        float distanceMoved = 0f;
+
+                        while (true)
                         {
-                            nma.isStopped = true;
-                            break;
+                            //Debug.Log("D");
+                            distanceMoved = Vector3.Distance(start, transform.position);
+                            //Debug.Log("E");
+                            if (Vector3.Distance(transform.position, nearestPlayer.transform.position) <= attackRange)
+                            {
+    
+                                nma.isStopped = true;
+                                Attack(nearestPlayer);
+    
+                                finishedTurn = true;
+                                //Debug.Log("F");
+                                yield break;
+                            }
+
+                            if (distanceMoved >= moveDistance)
+                            {
+                                //Debug.Log("G");
+                                nma.isStopped = true;  // Stop the enemy from moving.
+                                break;                 // Exit the loop as the enemy can't move anymore.
+                            }
+
+                            yield return null;
                         }
-                        yield return null;
                     }
                 }
             }
         }
 
-        Debug.Log("GRAHH I DID MY TURN");
+        finishedTurn = true;
 
-
-
-        gameManager.EndEnemiesTurn(this);
     }
+
+
+
+
+
 
     private void RetreatFromFoes()
     {
@@ -133,7 +182,7 @@ public class EnemyScript : MonoBehaviour
         //this is so sick man
         UnitScript nearestPlayer = getNearestPlayer();
 
-        if (nearestPlayer != null)
+         if (nearestPlayer != null)
         {
             Vector3 retreatDirection = (transform.position - nearestPlayer.transform.position);
             retreatDirection.Normalize();
@@ -141,9 +190,15 @@ public class EnemyScript : MonoBehaviour
             float speed = 7f;
             Vector3 retreatPosition = transform.position + retreatDirection * speed;
 
-            if (nma != null) {
+            if (nma != null)
+            {
+                Vector3 pos = new Vector3(transform.position.x, transform.position.y + 3f, transform.position.z);
+
+                GameObject DamageText = Instantiate(damageTextPrefab, pos, Quaternion.identity);
+                DamageText.transform.GetChild(0).gameObject.GetComponent<TextMeshPro>().text = "RETREAT!";
+                nma.isStopped = false;
                 nma.SetDestination(retreatPosition);
-                Debug.Log(retreatPosition == transform.position);
+                lastRetreat = true;
             }
 
 
@@ -153,7 +208,8 @@ public class EnemyScript : MonoBehaviour
 
     }
 
-    UnitScript getNearestPlayer() {
+    UnitScript getNearestPlayer()
+    {
         UnitScript[] playerUnits = FindObjectsOfType<UnitScript>();
 
         UnitScript nearestPlayer = null;
@@ -176,37 +232,6 @@ public class EnemyScript : MonoBehaviour
         return nearestPlayer;
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -236,42 +261,46 @@ public class EnemyScript : MonoBehaviour
 
     private void Update()
     {
+
         handleOutlines();
     }
 
     void handleOutlines()
     {
-        bool move = UnitScript.selectedUnit.options["move"];
-        bool attack = UnitScript.selectedUnit.options["attack"];
-
-        Vector3 selectedUnitPosition = UnitScript.selectedUnit.transform.position;
-        float distanceToEnemy = Vector3.Distance(selectedUnitPosition, transform.position);
-        //we have to be 2 units from the player for them to be able to attack
-        //im in the mind of the goblin writing this
-        //player bad
-        float attackRange = 2f;
-
-        if (move || attack)
+        if (UnitScript.selectedUnit != null)
         {
-            Ray mousePositionRay = mainCamera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hitInfo;
+            bool move = UnitScript.selectedUnit.options["move"];
+            bool attack = UnitScript.selectedUnit.options["attack"];
 
-            if (Physics.Raycast(mousePositionRay, out hitInfo, Mathf.Infinity, layerMask))
+            Vector3 selectedUnitPosition = UnitScript.selectedUnit.transform.position;
+            float distanceToEnemy = Vector3.Distance(selectedUnitPosition, transform.position);
+            //we have to be 2 units from the player for them to be able to attack
+            //im in the mind of the goblin writing this
+            //player bad
+            float attackRange = 2f;
+
+            if (move || attack)
             {
-                if (hitInfo.collider.gameObject == gameObject)
-                {
-                    if (move)
-                        moveOut.enabled = true;
+                Ray mousePositionRay = mainCamera.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hitInfo;
 
-                    if (attack && distanceToEnemy <= attackRange)
-                        attackOut.enabled = true;
-                    else
-                        attackOut.enabled = false;
-                }
-                else
+                if (Physics.Raycast(mousePositionRay, out hitInfo, Mathf.Infinity, layerMask))
                 {
-                    moveOut.enabled = false;
-                    attackOut.enabled = false;
+                    if (hitInfo.collider.gameObject == gameObject)
+                    {
+                        if (move)
+                            moveOut.enabled = true;
+
+                        if (attack && distanceToEnemy <= attackRange)
+                            attackOut.enabled = true;
+                        else
+                            attackOut.enabled = false;
+                    }
+                    else
+                    {
+                        moveOut.enabled = false;
+                        attackOut.enabled = false;
+                    }
                 }
             }
         }
@@ -280,21 +309,63 @@ public class EnemyScript : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        currentHealth -= damage;
-        healthbar.setHealth(currentHealth);
+        string message;
+        if (damage == 999)
+        {
+            message = "Missed!";
+        }
+        else
+        {
+            message = damage.ToString();
+            currentHealth -= damage;
+            healthbar.setHealth(currentHealth);
+        }
+
+        Vector3 pos = new Vector3(transform.position.x, transform.position.y + 3f, transform.position.z);
+
+        GameObject DamageText = Instantiate(damageTextPrefab, pos, Quaternion.identity);
+        DamageText.transform.GetChild(0).gameObject.GetComponent<TextMeshPro>().text = message;
+
 
         //if dead, tell game manager
         if (currentHealth <= 0)
         {
-
             gameManager.EndEnemyLife(this);
             Destroy(gameObject);
         }
 
+        if (currentHealth < maxHealth * 0.3f)
+        {
+            float rand = Random.value;
+            if (rand < 0.5f && !retreated)
+            {
+                RetreatFromFoes();
+                retreated = true;
+                finishedTurn = true;
+            }
+        }
+
+
 
     }
 
+    void Attack(UnitScript player)
+    {
 
+
+        int randomValue = Random.Range(5, 15);
+
+        if (Random.value < 0.4f)
+        {
+
+            player.TakeDamage(999);
+        }
+        else
+        {
+
+            player.TakeDamage(randomValue);
+        }
+    }
 
 
 

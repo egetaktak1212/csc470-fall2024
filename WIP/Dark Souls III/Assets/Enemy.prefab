@@ -311,7 +311,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 0}
   m_FillRect: {fileID: 3875693946037958669}
   m_HandleRect: {fileID: 0}
@@ -411,7 +411,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 3.5
+  m_Speed: 6
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
@@ -436,8 +436,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainCamera: {fileID: 0}
-  nma: {fileID: 0}
-  bodyRenderer: {fileID: 0}
+  damageTextPrefab: {fileID: 5962197364464559462, guid: 1969cc92227723544ac7968b8ef0e9fa, type: 3}
+  nma: {fileID: 6428610046223049569}
+  bodyRenderer: {fileID: 5393315739401871735}
   destination: {x: 0, y: 0, z: 0}
   selected: 0
   moveOut: {fileID: 0}
@@ -717,4 +718,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7c7b9d4e8079be4695252070ca59bc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cam: {fileID: 0}

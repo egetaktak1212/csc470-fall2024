@@ -12,14 +12,17 @@ using static UnityEngine.UI.CanvasScaler;
 using Random = UnityEngine.Random;
 using TMPro;
 using System.Linq;
+using UnityEngine.UI;
 
 public class UnitScript : MonoBehaviour
 {
-    public Outline outline;
+    public cakeslice.Outline outline;
     public static Action<EnemyScript> Highlight;
     public static Action<EnemyScript> UnHighlight;
     public static UnitScript selectedUnit;
+    public GameObject damageTextPrefab;
 
+    public Button ActionSurgeButton;
 
     public GameObject uifollower;
     public GameObject uifollowtext;
@@ -27,7 +30,7 @@ public class UnitScript : MonoBehaviour
 
     public HealthBarScript healthbar;
     public HealthBarScript worldbar;
-    
+
     public GameObject moveLeft;
     public GameObject apLeft;
 
@@ -47,6 +50,9 @@ public class UnitScript : MonoBehaviour
     public int maxHealth = 100;
     public int currentHealth;
 
+    //List<EnemyScript> enemyOverwhelm = new List<EnemyScript>();
+    //if the player has too many enemies around it, dont push lads (didnt have enough time to do it)
+    //public bool weOverwhelmed = false;
 
     private LineRenderer lineRenderer;
 
@@ -91,7 +97,7 @@ public class UnitScript : MonoBehaviour
 
     void OnEnable()
     {
-        
+
         if (!selected)
             bodyRenderer.material.color = normalColor;
         GameManager.UnitClicked += GameManagerSaysUnitWasClicked;
@@ -180,10 +186,17 @@ public class UnitScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!nma.pathPending && nma.remainingDistance <= nma.stoppingDistance)
+        {
+            nma.ResetPath();
+        }
+
+
         if (selected)
         {
-            if (Input.GetKeyDown(KeyCode.Space))
-                TakeDamage(20);
+
+
+            //Debug.Log(weOverwhelmed + " " + enemyOverwhelm.Count());
 
 
             if (!options["move"])
@@ -451,9 +464,16 @@ public class UnitScript : MonoBehaviour
             {
                 attackableFoes.Add(parent.gameObject);
             }
-
-
         }
+        //if (other.CompareTag("enemy") && !enemyOverwhelm.Contains(other.gameObject.GetComponent<EnemyScript>()))
+        //{
+        //    Debug.Log("add");
+        //    enemyOverwhelm.Append(other.gameObject.GetComponent<EnemyScript>());
+        //    if (enemyOverwhelm.Count >= 3)
+        //    {
+        //        weOverwhelmed = true;
+        //    }
+        //}
     }
 
     private void OnTriggerExit(Collider other)
@@ -464,36 +484,94 @@ public class UnitScript : MonoBehaviour
 
             attackableFoes.Remove(parent.gameObject);
 
+            if (nma.hasPath)
+            {
 
+                int randomValue = Random.Range(1, 8);
+                if (Random.value < 0.4f)
+                {
+                    TakeDamage(999);
+                }
+                else
+                {
+                    TakeDamage(randomValue);
+                }
+            }
 
         }
+        //if (other.CompareTag("enemy") && enemyOverwhelm.Contains(other.gameObject.GetComponent<EnemyScript>()))
+        //{
+        //    enemyOverwhelm.Remove(other.gameObject.GetComponent<EnemyScript>());
+        //    if (enemyOverwhelm.Count < 3)
+        //    {
+        //        weOverwhelmed = false;
+        //    }
+        //}
+
+
+
+
     }
 
     public void TakeDamage(int damage)
     {
-        currentHealth -= damage;
-        healthbar.setHealth(currentHealth);
-        if (worldbar != null)
+
+        string message;
+        if (damage == 999)
         {
-            worldbar.setHealth(currentHealth);
+            message = "Missed!";
         }
+        else
+        {
+            message = damage.ToString();
+            currentHealth -= damage;
+            healthbar.setHealth(currentHealth);
+            if (worldbar != null)
+            {
+                worldbar.setHealth(currentHealth);
+            }
+        }
+
+
+        Vector3 pos = new Vector3(transform.position.x, transform.position.y + 3f, transform.position.z);
+        GameObject DamageText = Instantiate(damageTextPrefab, pos, Quaternion.identity);
+
+
+
+        DamageText.transform.GetChild(0).gameObject.GetComponent<TextMeshPro>().text = message;
 
         //if dead, tell game manager
         if (currentHealth <= 0)
         {
-            
             gameManager.EndPlayerLife(this);
-            Debug.Log("die");
             Destroy(gameObject);
         }
 
 
+
+
     }
 
-    void Attack(EnemyScript enemy) {
-        enemy.TakeDamage(20);
-    
-    
+    void Attack(EnemyScript enemy)
+    {
+        int randomValue = Random.Range(20, 40);
+        if (Random.value < 0.1f)
+        {
+            enemy.TakeDamage(999);
+        }
+        else
+        {
+
+            enemy.TakeDamage(randomValue);
+        }
+
+    }
+
+    public void ActionSurge()
+    {
+        actionPoints++;
+        ActionSurgeButton.interactable = false;
+
     }
 
 
