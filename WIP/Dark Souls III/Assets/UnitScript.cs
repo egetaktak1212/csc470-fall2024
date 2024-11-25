@@ -26,7 +26,8 @@ public class UnitScript : MonoBehaviour
     public GameObject ui;
 
     public HealthBarScript healthbar;
-
+    public HealthBarScript worldbar;
+    
     public GameObject moveLeft;
     public GameObject apLeft;
 
@@ -80,26 +81,17 @@ public class UnitScript : MonoBehaviour
     /*
     TO DO LIST:
 
-    NEW BUG:
-
-
-    CANNOT SKIP TURN DURING ENEMY TURN
     LIMITED TURNS?
-    TURN HUD AT THE TOP SHOWING WHO"S TURN IT BE
 
     CONTROLS POPUP
 
     SHOOTING
-    ATTACKING
     ENEMY AI
-
-    GAMEMANAGER LINE 82, "CANWE", ARE WE ALLOWED TO GO NEXT TURN RN?
-
-
     */
 
     void OnEnable()
     {
+        
         if (!selected)
             bodyRenderer.material.color = normalColor;
         GameManager.UnitClicked += GameManagerSaysUnitWasClicked;
@@ -138,6 +130,7 @@ public class UnitScript : MonoBehaviour
             selected = true;
             bodyRenderer.material.color = selectedColor;
             selectedUnit = this;
+            worldbar.transform.parent.gameObject.SetActive(false);
 
         }
         else
@@ -145,7 +138,8 @@ public class UnitScript : MonoBehaviour
             //delete the line cuz it'll just stay when u switch
             lineRenderer.positionCount = 0;
             selected = false;
-
+            worldbar.transform.parent.gameObject.SetActive(true);
+            worldbar.setHealth(currentHealth);
             bodyRenderer.material.color = normalColor;
 
         }
@@ -172,6 +166,8 @@ public class UnitScript : MonoBehaviour
 
         currentHealth = maxHealth;
         healthbar.SetMaxHealth(currentHealth);
+        worldbar.SetMaxHealth(currentHealth);
+        worldbar.transform.parent.gameObject.SetActive(true);
         gameManager = GameManager.instance;
 
 
@@ -477,6 +473,10 @@ public class UnitScript : MonoBehaviour
     {
         currentHealth -= damage;
         healthbar.setHealth(currentHealth);
+        if (worldbar != null)
+        {
+            worldbar.setHealth(currentHealth);
+        }
 
         //if dead, tell game manager
         if (currentHealth <= 0)

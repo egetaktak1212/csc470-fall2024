@@ -37,6 +37,7 @@ public class EnemyScript : MonoBehaviour
     public int currentHealth;
     public HealthBarScript healthbar;
 
+    bool retreated = false;
 
     void OnEnable()
     {
@@ -61,22 +62,157 @@ public class EnemyScript : MonoBehaviour
     void enemyTurn()
     {
         //ITS OUR TURN BABY NYEH NYEH NYEH
-        
+
         StartCoroutine(PerformEnemyActions());
     }
 
+
+    //WHERE THE MAGIC HAPPENS BOYS
     private IEnumerator PerformEnemyActions()
     {
         yield return new WaitForSeconds(2);
+
+        //if we are less than 30 percent health, RUN MAN GET THE HELL OUTTA THERE
+        if (currentHealth < maxHealth * 0.3f)
+        {
+            //but we have sm honor about it, so its a 50% chance
+            float rand = Random.value;
+            if (rand < 0.5f && !retreated) { 
+                RetreatFromFoes();
+                //if we retreat once, we dont again
+                retreated = true;
+                gameManager.EndEnemiesTurn(this);
+                yield break;
+            }
+        }
+
+        //we will attempt to approach and attack the nearest unit
+        UnitScript nearestPlayer = getNearestPlayer();
+
+        if (nearestPlayer != null)
+        {
+            float distanceToPlayer = Vector3.Distance(transform.position, nearestPlayer.transform.position);
+
+
+            float moveDistance = 5f;  
+            float attackRange = 2f;  
+
+            if (distanceToPlayer <= attackRange)
+            {
+                //attack here
+
+            }
+            else
+            {
+                if (nma != null)
+                {
+                    nma.SetDestination(nearestPlayer.transform.position);
+                    while (Vector3.Distance(transform.position, nearestPlayer.transform.position) > attackRange)
+                    {
+                        if (Vector3.Distance(transform.position, nearestPlayer.transform.position) <= moveDistance)
+                        {
+                            nma.isStopped = true;
+                            break;
+                        }
+                        yield return null;
+                    }
+                }
+            }
+        }
+
         Debug.Log("GRAHH I DID MY TURN");
+
+
 
         gameManager.EndEnemiesTurn(this);
     }
 
+    private void RetreatFromFoes()
+    {
+        //if Im low on hp brother, im boutta flee outta here yfeel me. i aint dyin today. But ill only do it once per game cuz i aint a little wuss yfeel
+        //this is so sick man
+        UnitScript nearestPlayer = getNearestPlayer();
+
+        if (nearestPlayer != null)
+        {
+            Vector3 retreatDirection = (transform.position - nearestPlayer.transform.position);
+            retreatDirection.Normalize();
+
+            float speed = 7f;
+            Vector3 retreatPosition = transform.position + retreatDirection * speed;
+
+            if (nma != null) {
+                nma.SetDestination(retreatPosition);
+                Debug.Log(retreatPosition == transform.position);
+            }
 
 
-// Start is called before the first frame update
-void Start()
+
+        }
+
+
+    }
+
+    UnitScript getNearestPlayer() {
+        UnitScript[] playerUnits = FindObjectsOfType<UnitScript>();
+
+        UnitScript nearestPlayer = null;
+        float closestDistance = Mathf.Infinity;
+
+
+        foreach (UnitScript player in playerUnits)
+        {
+            if (player != null && player.gameObject.CompareTag("unit"))
+            {
+                float distanceToPlayer = Vector3.Distance(transform.position, player.transform.position);
+                if (distanceToPlayer < closestDistance)
+                {
+                    closestDistance = distanceToPlayer;
+                    nearestPlayer = player;
+                }
+            }
+        }
+
+        return nearestPlayer;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Start is called before the first frame update
+    void Start()
     {
         path = new NavMeshPath();
         layerMask = LayerMask.GetMask("wall");
@@ -103,7 +239,8 @@ void Start()
         handleOutlines();
     }
 
-    void handleOutlines() {
+    void handleOutlines()
+    {
         bool move = UnitScript.selectedUnit.options["move"];
         bool attack = UnitScript.selectedUnit.options["attack"];
 
