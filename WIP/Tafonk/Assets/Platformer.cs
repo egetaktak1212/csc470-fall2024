@@ -139,7 +139,7 @@ public class Platformer : MonoBehaviour
                     yVelocity += gravity * 2.0f * Time.deltaTime;
                 }
 
-                if (Input.GetKeyUp(KeyCode.Space) && yVelocity > 0) { yVelocity = 0.0f; }
+                //if (Input.GetKeyUp(KeyCode.Space) && yVelocity > 0) { yVelocity = 0.0f; }
 
             }
         }

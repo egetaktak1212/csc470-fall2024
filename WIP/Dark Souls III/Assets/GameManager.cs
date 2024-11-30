@@ -176,18 +176,16 @@ public class GameManager : MonoBehaviour
 
         if (activeEnemies.Count > 0)
         {
-            StartCoroutine(DoEnemyTurn());
+            DoEnemyTurn();
         }
     }
 
-    private IEnumerator DoEnemyTurn()
+    private void DoEnemyTurn()
     {
         for (int i = 0; i < activeEnemies.Count; i++)
         {
             EnemyScript currentEnemy = activeEnemies[i];
             currentEnemy.StartTurn();
-            yield return new WaitUntil(() => currentEnemy.finishedTurn); //this line is also from gpt. the cross can wait i gotta finish first
-
         }
         EndEnemiesTurn();
 
